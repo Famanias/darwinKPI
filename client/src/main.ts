@@ -1,6 +1,24 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { AppComponent } from './app/app.component';
+// import { bootstrapApplication } from '@angular/platform-browser';
+// import { appConfig } from './app/app.config';
+// import { AppComponent } from './app/app.component';
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+// bootstrapApplication(AppComponent, appConfig)
+//   .catch((err) => console.error(err));
+
+
+// client/src/main.ts
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideRouter, withEnabledBlockingInitialNavigation } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideAnimations } from '@angular/platform-browser/animations'; // Optional, if using animations
+import { AppComponent } from './app/app.component';
+import { routes } from './app/app.routes';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideRouter(routes, withEnabledBlockingInitialNavigation()),
+    provideHttpClient(),
+    // Add other providers if needed (e.g., AuthService if not provided in 'root')
+  ]
+})
+  .catch(err => console.error(err));
