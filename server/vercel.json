@@ -13,7 +13,7 @@
     "routes": [
       {
         "src": "/api/(.*)",
-        "dest": "https://darwin-kpi-backend-mi37fv5zv-famanias-projects.vercel.app/api/$1"
+        "dest": "index.js"
       }
     ]
   }

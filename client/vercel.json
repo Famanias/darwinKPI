@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+      {
+        "source": "/api/(.*)",
+        "destination": "https://darwin-kpi-backend-mi37fv5zv-famanias-projects.vercel.app/api/$1"
+      },
+      {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      }
+    ]
+  }
