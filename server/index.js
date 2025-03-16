@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: 'https://darwin-kpi-frontend-ggeng46fh-famanias-projects.vercel.app' }));
+app.use(cors({ origin: 'https://darwin-kpi-frontend-l8x52wqoc-famanias-projects.vercel.app' }));
 // Async MongoDB connection
 async function connectDB() {
   try {
