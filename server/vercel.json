@@ -6,7 +6,7 @@
         "use": "@vercel/node",
         "config": {
           "memory": 1024,
-          "maxDuration": 60
+          "maxDuration": 10
         }
       }
     ],
@@ -15,6 +15,5 @@
         "src": "/api/(.*)",
         "dest": "index.js"
       }
-    ],
-    "includeFiles": ["node_modules/**"]
+    ]
   }
