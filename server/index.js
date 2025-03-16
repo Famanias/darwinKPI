@@ -6,7 +6,10 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect('mongodb://localhost/darwinKPI').then(() => console.log('MongoDB connected'));
+// Use environment variable for MongoDB URI
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/darwinKPI')
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 const authRoutes = require('./routes/auth');
 const kpiRoutes = require('./routes/kpi');
@@ -16,5 +19,5 @@ app.use('/api/auth', authRoutes);
 app.use('/api/kpis', kpiRoutes);
 app.use('/api/performance', performanceRoutes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Export the app for Vercel serverless function
+module.exports = app;
