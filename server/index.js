@@ -27,6 +27,6 @@ const performanceRoutes = require('./routes/performance');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/kpis', kpiRoutes);
-app.use('/api/performance', performanceRoutes');
+app.use('/api/performance', performanceRoutes);
 
 module.exports = app;
