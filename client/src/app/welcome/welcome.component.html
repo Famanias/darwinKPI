@@ -1,0 +1,97 @@
+<div class="flex min-h-screen flex-col">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 w-full border-b bg-white">
+      <div class="container mx-auto flex h-16 items-center justify-between px-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl font-bold">Darwin KPI</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button (click)="navigateToLogin()" class="border border-gray-300 rounded px-4 py-2 hover:bg-gray-100">Log in</button>
+            <button routerLink="/register" class="bg-black text-white rounded px-4 py-2 hover:bg-gray-800">Register</button>
+        </div>
+      </div>
+    </header>
+  
+    <!-- Main Content -->
+    <main class="flex-1">
+      <!-- Hero Section -->
+      <section class="w-full py-12 md:py-24 lg:py-32">
+        <div class="container mx-auto px-4 md:px-6">
+          <div class="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
+            <div class="space-y-4">
+              <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Data Analytics and Reporting for Workforce Key Performance Indicators
+              </h1>
+              <p class="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Optimize workforce performance with real-time KPI tracking, comprehensive analytics,
+                and actionable insights for better decision-making.
+              </p>
+              <div class="flex flex-col gap-2 min-[400px]:flex-row">
+                <button routerLink="/register" class="bg-black text-white rounded px-4 py-2 hover:bg-gray-800">Get Started</button>
+                <button routerLink="/about" class="border border-gray-300 rounded px-4 py-2 hover:bg-gray-100">Learn More</button>
+              </div>
+            </div>
+            <div class="flex items-center justify-center">
+              <img
+                src="./assets/darwinKPI.png" 
+                alt="Darwin KPI Dashboard Preview"
+                class="rounded-lg object-cover w-full h-auto max-w-[600px] max-h-[400px]"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <!-- Features Section -->
+      <section class="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+        <div class="container mx-auto px-4 md:px-6">
+          <div class="flex flex-col items-center justify-center space-y-4 text-center">
+            <div class="space-y-2">
+              <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">Key Features</h2>
+              <p class="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Darwin KPI provides powerful tools for monitoring and enhancing workforce performance.
+              </p>
+            </div>
+          </div>
+          <div class="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+              <h3 class="text-lg font-semibold mb-2">Performance Tracking</h3>
+              <p class="text-sm text-gray-500">
+                Monitor individual and team KPIs in real-time with detailed metrics.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+              <h3 class="text-lg font-semibold mb-2">Workforce Analytics</h3>
+              <p class="text-sm text-gray-500">
+                Gain insights into productivity trends and performance patterns.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+              <h3 class="text-lg font-semibold mb-2">Goal Management</h3>
+              <p class="text-sm text-gray-500">
+                Set, track, and evaluate performance goals across your organization.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+              <h3 class="text-lg font-semibold mb-2">Custom Dashboards</h3>
+              <p class="text-sm text-gray-500">
+                Create tailored views for different roles and departments.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  
+    <!-- Footer -->
+    <footer class="w-full border-t py-6 bg-white">
+      <div class="container mx-auto flex flex-col items-center justify-between gap-4 md:flex-row px-4">
+        <p class="text-center text-sm text-gray-500">© 2025 Darwin KPI. All rights reserved.</p>
+        <div class="flex gap-4">
+          <a routerLink="/terms" class="text-sm text-gray-500 hover:underline">Terms of Service</a>
+          <a routerLink="/privacy" class="text-sm text-gray-500 hover:underline">Privacy Policy</a>
+          <a routerLink="/contact" class="text-sm text-gray-500 hover:underline">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
