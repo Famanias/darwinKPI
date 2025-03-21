@@ -8,13 +8,18 @@ const app = express();
 app.use(express.json());
 
 // CORS configuration (dynamic for local and deployed)
-const allowedOrigins = [process.env.CORS_ORIGIN || 'http://localhost:4200'];
+const allowedOrigins = [
+  'http://localhost:4200', // Local frontend
+  'https://darwinkpi.vercel.app'
+];
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(new Error(`CORS policy: Origin ${origin} not allowed`));
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],

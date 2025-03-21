@@ -101,7 +101,7 @@ router.post('/login', async (req, res) => {
       user: { id: user.id, email: user.email, role: user.role }
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('Login error:', err.message, err.stack); // Improved logging
     res.status(500).json({ message: 'Login failed', error: 'Database error' });
   }
 });
