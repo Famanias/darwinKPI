@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables from .env
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
@@ -21,12 +21,15 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+const caCert = process.env.MYSQL_SSL_CA.replace(/\\n/g, '\n');
+
 // MySQL connection
 let dbPromise = mysql.createConnection({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE
+  uri: process.env.MYSQL_SERVICE_URI,
+  ssl: {
+    ca: caCert,
+    rejectUnauthorized: true
+  }
 }).then(connection => {
   console.log('MySQL connected');
   return connection;
