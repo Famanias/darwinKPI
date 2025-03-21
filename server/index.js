@@ -1,6 +1,6 @@
 require('dotenv').config(); // Load environment variables from .env
 const express = require('express');
-const mongoose = require('mongoose');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
 const app = express();
 
@@ -21,23 +21,37 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Async MongoDB connection
-async function connectDB() {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/darwinKPI', {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
-    });
-    console.log('MongoDB connected');
-  } catch (err) {
-    console.error('MongoDB connection error:', err);
-    process.exit(1); // Exit if connection fails
-  }
-}
+// MySQL connection
+let dbPromise = mysql.createConnection({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE
+}).then(connection => {
+  console.log('MySQL connected');
+  return connection;
+}).catch(err => {
+  console.error('MySQL connection error:', err);
+  process.exit(1);
+});
 
-// Start server only after successful DB connection
+// Export app and dbPromise before requiring routes
+module.exports = { app, db: dbPromise };
+
+// Start server and set up routes after export
 async function startServer() {
-  await connectDB();
+  // Wait for the database connection to be established
+  await dbPromise;
+
+  // Now that exports are set, require and use the routes
+  const authRoutes = require('./routes/auth');
+  const kpiRoutes = require('./routes/kpi');
+  const performanceRoutes = require('./routes/performance');
+
+  app.use('/api/auth', authRoutes);
+  app.use('/api/kpis', kpiRoutes);
+  app.use('/api/performance', performanceRoutes);
+
   const port = process.env.PORT || 3000;
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
@@ -45,14 +59,3 @@ async function startServer() {
 }
 
 startServer();
-
-// Routes
-const authRoutes = require('./routes/auth');
-const kpiRoutes = require('./routes/kpi');
-const performanceRoutes = require('./routes/performance');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/kpis', kpiRoutes);
-app.use('/api/performance', performanceRoutes);
-
-module.exports = app; // Export for potential use (e.g., testing)

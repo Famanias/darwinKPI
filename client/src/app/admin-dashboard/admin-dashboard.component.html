@@ -1,0 +1,7 @@
+<div class="flex min-h-screen flex-col items-center justify-center py-12">
+    <div class="container flex flex-col items-center justify-center">
+      <h1 class="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
+      <p class="text-sm text-gray-500">Welcome, {{ getUserRole() }}! This is the Admin Dashboard.</p>
+      <button (click)="logout()" class="mt-4 bg-black text-white rounded px-4 py-2 hover:bg-gray-800 cursor-pointer">Logout</button>
+    </div>
+</div>

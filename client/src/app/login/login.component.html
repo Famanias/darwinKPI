@@ -1,18 +1,3 @@
-<!-- client/src/app/login/login.component.html
-<form (ngSubmit)="onSubmit()">
-    <div>
-      <label>Email:</label>
-      <input type="email" [(ngModel)]="email" name="email" required />
-    </div>
-    <div>
-      <label>Password:</label>
-      <input type="password" [(ngModel)]="password" name="password" required />
-    </div>
-    <button type="submit">Login</button>
-    <p *ngIf="error" style="color: red;">{{ error }}</p>
-  </form>
- -->
-
  <div class="flex min-h-screen flex-col items-center justify-center py-12">
   <div class="container flex flex-col items-center justify-center">
     <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
@@ -41,7 +26,7 @@
         </div>
         <div class="card-footer flex flex-col">
           <div class="mt-2 text-center text-sm">
-            Don't have an account? <a routerLink="/register" class="text-blue-600 underline">Register</a>
+            Don't have an account? <a (click)="navigateToRegister()" class="text-blue-600 underline">Register</a> 
           </div>
         </div>
       </div>

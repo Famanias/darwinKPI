@@ -18,7 +18,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.14.2",
     "mongoose": "^8.12.1",
-    "whatwg-url": "^14.2.0",
-    "webidl2js": "^1.0.0"
+    "mysql2": "^3.14.0",
+    "uuid": "^11.1.0",
+    "webidl2js": "^1.0.0",
+    "whatwg-url": "^14.2.0"
   }
 }
