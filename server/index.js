@@ -2,68 +2,79 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+
 const app = express();
 
-// Middleware
-app.use(express.json());
-
-// CORS configuration (dynamic for local and deployed)
+// CORS configuration
 const allowedOrigins = [
-  'http://localhost:4200', // Local frontend
+  'http://localhost:4200',
   'https://darwinkpi.vercel.app'
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    } else {
-      return callback(new Error(`CORS policy: Origin ${origin} not allowed`));
-    }
-  },
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-const caCert = process.env.MYSQL_SSL_CA.replace(/\\n/g, '\n');
+app.use(express.json());
 
-// MySQL connection
-let dbPromise = mysql.createConnection({
-  uri: process.env.MYSQL_SERVICE_URI,
-  ssl: {
-    ca: caCert,
-    rejectUnauthorized: true
+// Database connection setup
+const initDB = async () => {
+  try {
+    const caCert = process.env.MYSQL_SSL_CA?.replace(/\\n/g, '\n');
+    const connection = await mysql.createConnection({
+      uri: process.env.MYSQL_SERVICE_URI,
+      ssl: {
+        ca: caCert,
+        rejectUnauthorized: true
+      }
+    });
+    console.log('MySQL connected');
+    return connection;
+  } catch (err) {
+    console.error('MySQL connection error:', err);
+    throw err;
   }
-}).then(connection => {
-  console.log('MySQL connected');
-  return connection;
-}).catch(err => {
-  console.error('MySQL connection error:', err);
-  process.exit(1);
-});
+};
 
-// Export app and dbPromise before requiring routes
-module.exports = { app, db: dbPromise };
+// Initialize database and routes
+const initializeApp = async () => {
+  try {
+    const db = await initDB();
+    
+    // Attach database to app context
+    app.locals.db = db;
 
-// Start server and set up routes after export
-async function startServer() {
-  // Wait for the database connection to be established
-  await dbPromise;
+    // Routes
+    const authRoutes = require('./routes/auth');
+    const kpiRoutes = require('./routes/kpi');
+    const performanceRoutes = require('./routes/performance');
 
-  // Now that exports are set, require and use the routes
-  const authRoutes = require('./routes/auth');
-  const kpiRoutes = require('./routes/kpi');
-  const performanceRoutes = require('./routes/performance');
+    app.use('/api/auth', authRoutes);
+    app.use('/api/kpis', kpiRoutes);
+    app.use('/api/performance', performanceRoutes);
 
-  app.use('/api/auth', authRoutes);
-  app.use('/api/kpis', kpiRoutes);
-  app.use('/api/performance', performanceRoutes);
+    // Error handling middleware
+    app.use((err, req, res, next) => {
+      console.error(err.stack);
+      res.status(500).json({ message: 'Something broke!' });
+    });
 
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-}
+    // Start server only when not in Vercel environment
+    if (!process.env.VERCEL) {
+      const port = process.env.PORT || 3000;
+      app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+      });
+    }
 
-startServer();
+    return app;
+  } catch (err) {
+    console.error('Application initialization failed:', err);
+    process.exit(1);
+  }
+};
+
+// Export the initialized app for Vercel
+module.exports = initializeApp();

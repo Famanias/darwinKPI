@@ -4,9 +4,6 @@ const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Get the database connection from index.js
-const { db: dbPromise } = require('../index');
-
 // Validate email format
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,7 +37,9 @@ router.post('/register', async (req, res) => {
       return res.status(403).json({ message: 'Registration is restricted to User role only' });
     }
 
-    const db = await dbPromise;
+    // Get database connection from app locals
+    const db = req.app.locals.db;
+
     const [existing] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
     if (existing.length > 0) {
       return res.status(400).json({ message: 'User already exists' });
@@ -75,7 +74,9 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
-    const db = await dbPromise;
+    // Get database connection from app locals
+    const db = req.app.locals.db;
+
     const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
     const user = rows[0];
 
@@ -101,8 +102,11 @@ router.post('/login', async (req, res) => {
       user: { id: user.id, email: user.email, role: user.role }
     });
   } catch (err) {
-    console.error('Login error:', err.message, err.stack); // Improved logging
-    res.status(500).json({ message: 'Login failed', error: 'Database error' });
+    console.error('Login error:', err.message, err.stack);
+    res.status(500).json({ 
+      message: 'Login failed', 
+      error: process.env.NODE_ENV === 'production' ? 'Server error' : err.message 
+    });
   }
 });
 
