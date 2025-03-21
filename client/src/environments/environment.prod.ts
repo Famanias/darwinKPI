@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: ''  // Update after backend deployment
+    apiUrl: 'https://darwin-kpi-backend.vercel.app'  // Update after backend deployment
   };
