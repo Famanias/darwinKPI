@@ -7,7 +7,7 @@ import { environment } from '../environments/environment';
 interface LoginResponse {
   token: string;
   user: {
-    id: string;
+    id: number; // Changed from string to number since MySQL uses auto-incremented integers
     email: string;
     role: string;
   };
@@ -32,8 +32,8 @@ export class AuthService {
     );
   }
 
-  register(email: string, password: string, name?: string, role?: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, { email, password, name, role });
+  register(email: string, password: string, name?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, { email, password, name });
   }
 
   logout(): void {
@@ -45,7 +45,7 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  getUser(): { id: string; email: string; role: string } | null {
+  getUser(): { id: number; email: string; role: string } | null {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   }

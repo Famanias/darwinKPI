@@ -3,6 +3,7 @@ import { AuthService } from '../auth.service';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -16,7 +17,6 @@ export class RegisterComponent {
   password: string = '';
   confirmPassword: string = '';
   name: string = '';
-  role: string = 'User'; // Default role
   error: string = '';
 
   constructor(private authService: AuthService, private router: Router) {}
@@ -28,7 +28,7 @@ export class RegisterComponent {
       return;
     }
 
-    this.authService.register(this.email, this.password, this.name, this.role).subscribe({
+    this.authService.register(this.email, this.password, this.name).subscribe({
       next: (response) => {
         console.log('Registration successful', response);
         this.router.navigate(['/login']);

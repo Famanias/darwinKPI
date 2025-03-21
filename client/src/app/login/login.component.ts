@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../auth.service';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -16,7 +17,7 @@ export class LoginComponent {
   password: string = '';
   error: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private http: HttpClient, private authService: AuthService, private router: Router) {}
 
   onSubmit(): void {
     this.error = '';

@@ -34,10 +34,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 8 characters long' });
     }
 
-    // Validate role
-    const validRoles = ['Admin', 'User', 'Analyst'];
-    if (role && !validRoles.includes(role)) {
-      return res.status(400).json({ message: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
+    // Restrict role to 'User' only for public registration
+    const allowedRole = 'User';
+    if (role && role !== allowedRole) {
+      return res.status(403).json({ message: 'Registration is restricted to User role only' });
     }
 
     const db = await dbPromise;
@@ -49,11 +49,11 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcryptjs.hash(password, 10);
     const [result] = await db.execute(
       'INSERT INTO users (name, email, role, password) VALUES (?, ?, ?, ?)',
-      [name || 'User', email, role || 'User', hashedPassword]
+      [name || 'User', email, allowedRole, hashedPassword]
     );
 
-    const userId = result.insertId; // Get the auto-incremented ID
-    res.status(201).json({ message: 'Registration successful', user: { id: userId, email, role: role || 'User' } });
+    const userId = result.insertId;
+    res.status(201).json({ message: 'Registration successful', user: { id: userId, email, role: allowedRole } });
   } catch (err) {
     console.error('Registration error:', err);
     if (err.code === 'ER_DUP_ENTRY') {
