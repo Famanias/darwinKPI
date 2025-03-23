@@ -1,0 +1,13 @@
+.vercel
+
+
+# MongoDB data
+data/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example

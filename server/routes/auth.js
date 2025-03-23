@@ -1,44 +1,112 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
+const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 require('dotenv').config();
 
+// Validate email format
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Validate password length
+const validatePassword = (password) => {
+  return password.length >= 8;
+};
+
 router.post('/register', async (req, res) => {
+  const { email, password, name, role } = req.body;
   try {
-    const { name, email, password, role } = req.body;
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: 'All fields are required' });
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+    }
+
+    // Restrict role to 'User' only for public registration
+    const allowedRole = 'User';
+    if (role && role !== allowedRole) {
+      return res.status(403).json({ message: 'Registration is restricted to User role only' });
+    }
+
+    // Get database connection from app locals
+    const db = req.app.locals.db;
+
+    const [existing] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+    if (existing.length > 0) {
       return res.status(400).json({ message: 'User already exists' });
     }
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const user = new User({ name, email, password: hashedPassword, role });
-    await user.save();
-    res.status(201).json({ message: 'User registered' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error registering user', error: error.message });
+
+    const hashedPassword = await bcryptjs.hash(password, 10);
+    const [result] = await db.execute(
+      'INSERT INTO users (name, email, role, password) VALUES (?, ?, ?, ?)',
+      [name || 'User', email, allowedRole, hashedPassword]
+    );
+
+    const userId = result.insertId;
+    res.status(201).json({ message: 'Registration successful', user: { id: userId, email, role: allowedRole } });
+  } catch (err) {
+    console.error('Registration error:', err);
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    res.status(500).json({ message: 'Registration failed', error: 'Database error' });
   }
 });
 
 router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
+    // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
-    const user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
     }
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ message: 'Error logging in', error: error.message });
+
+    // Get database connection from app locals
+    const db = req.app.locals.db;
+
+    const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+    const user = rows[0];
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      user: { id: user.id, email: user.email, role: user.role }
+    });
+  } catch (err) {
+    console.error('Login error:', err.message, err.stack);
+    res.status(500).json({ 
+      message: 'Login failed', 
+      error: process.env.NODE_ENV === 'production' ? 'Server error' : err.message 
+    });
   }
 });
 

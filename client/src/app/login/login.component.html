@@ -1,13 +1,35 @@
-<!-- client/src/app/login/login.component.html -->
-<form (ngSubmit)="onSubmit()">
-    <div>
-      <label>Email:</label>
-      <input type="email" [(ngModel)]="email" name="email" required />
+ <div class="flex min-h-screen flex-col items-center justify-center py-12">
+  <div class="container flex flex-col items-center justify-center">
+    <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+      <div class="flex flex-col space-y-2 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight">Login to Darwin KPI</h1>
+        <p class="text-sm text-gray-500">Enter your credentials to access your account</p>
+      </div>
+      <div class="card">
+        <div class="card border border-grey-400 rounded-lg p-4">
+          <form (ngSubmit)="onSubmit()">
+            <div class="grid gap-4">
+              <div class="grid gap-2">
+                <label for="email" class="block text-sm font-medium">Email</label>
+                <input id="email" type="email" placeholder="name@example.com" required class="w-full p-2 border rounded" [(ngModel)]="email" name="email"/>
+              </div>
+              <div class="grid gap-2">
+                <div class="flex items-center justify-between">
+                  <label for="password" class="block text-sm font-medium">Password</label>
+                  <a routerLink="/forgot-password" class="text-sm text-blue-600 underline">Forgot password?</a>
+                </div>
+                <input id="password" type="password" required class="w-full p-2 border rounded" [(ngModel)]="password" name="password"/>
+              </div>
+              <button type="submit" class="w-full bg-black text-white rounded px-4 py-2 hover:bg-gray-800">Login</button>
+            </div>
+          </form>
+        </div>
+        <div class="card-footer flex flex-col">
+          <div class="mt-2 text-center text-sm">
+            Don't have an account? <a (click)="navigateToRegister()" class="text-blue-600 underline">Register</a> 
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <label>Password:</label>
-      <input type="password" [(ngModel)]="password" name="password" required />
-    </div>
-    <button type="submit">Login</button>
-    <p *ngIf="error" style="color: red;">{{ error }}</p>
-  </form>
+  </div>
+</div>

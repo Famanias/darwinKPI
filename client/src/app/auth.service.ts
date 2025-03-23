@@ -1,35 +1,53 @@
-// client/src/app/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../environments/environment';
+
+interface LoginResponse {
+  token: string;
+  user: {
+    id: number; // Changed from string to number since MySQL uses auto-incremented integers
+    email: string;
+    role: string;
+  };
+}
 
 @Injectable({
   providedIn: 'root'
 })
-
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = `${environment.apiUrl}/api/auth`;
 
   constructor(private http: HttpClient) {}
 
-  login(email: string, password: string): Observable<any> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/login`, { email, password })
-      .pipe(
-        tap(response => {
-          if (response.token) {
-            localStorage.setItem('token', response.token);
-          }
-        })
-      );
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap(response => {
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
+      })
+    );
+  }
+
+  register(email: string, password: string, name?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, { email, password, name });
   }
 
   logout(): void {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
 
   getToken(): string | null {
     return localStorage.getItem('token');
+  }
+
+  getUser(): { id: number; email: string; role: string } | null {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
   }
 
   isLoggedIn(): boolean {
@@ -38,6 +56,30 @@ export class AuthService {
 
   getAuthHeaders(): HttpHeaders {
     const token = this.getToken();
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
+
+  // Role-based checks
+  isAdmin(): boolean {
+    const user = this.getUser();
+    return user ? user.role === 'Admin' : false;
+  }
+
+  isAnalyst(): boolean {
+    const user = this.getUser();
+    return user ? user.role === 'Analyst' : false;
+  }
+
+  isUser(): boolean {
+    const user = this.getUser();
+    return user ? user.role === 'User' : false;
+  }
+
+  getRole(): string | null {
+    const user = this.getUser();
+    return user ? user.role : null;
   }
 }
