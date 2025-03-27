@@ -33,7 +33,7 @@ const initDB = async () => {
     console.log('MySQL connected');
     return connection;
   } catch (err) {
-    console.error('MySQL connection error:', err);
+    console.error('MySQL connection error:', err.message, err.stack);
     throw err;
   }
 };
@@ -49,10 +49,12 @@ const initializeApp = async () => {
     // Routes
     const authRoutes = require('./routes/auth');
     const kpiRoutes = require('./routes/kpi');
+    const usersRoutes = require('./routes/users');
     const performanceRoutes = require('./routes/performance');
 
     app.use('/api/auth', authRoutes);
     app.use('/api/kpis', kpiRoutes);
+    app.use('/api/users', usersRoutes);
     app.use('/api/performance', performanceRoutes);
 
     // Error handling middleware

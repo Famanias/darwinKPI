@@ -10,4 +10,10 @@ import { RouterOutlet } from '@angular/router';
 })
 export class AppComponent {
   title = 'darwin-kpi';
+
+  isSidebarCollapsed = false;
+
+  onToggleSidebar(isCollapsed: boolean) {
+    this.isSidebarCollapsed = isCollapsed;
+  }
 }

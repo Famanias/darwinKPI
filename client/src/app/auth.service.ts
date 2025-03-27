@@ -7,7 +7,7 @@ import { environment } from '../environments/environment';
 interface LoginResponse {
   token: string;
   user: {
-    id: number; // Changed from string to number since MySQL uses auto-incremented integers
+    id: number;
     email: string;
     role: string;
   };
@@ -17,12 +17,12 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = `${environment.apiUrl}/api/auth`;
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/api/auth/login`, { email, password }).pipe(
       tap(response => {
         if (response.token) {
           localStorage.setItem('token', response.token);
@@ -33,7 +33,7 @@ export class AuthService {
   }
 
   register(email: string, password: string, name?: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, { email, password, name });
+    return this.http.post(`${this.apiUrl}/api/auth/register`, { email, password, name });
   }
 
   logout(): void {
@@ -81,5 +81,41 @@ export class AuthService {
   getRole(): string | null {
     const user = this.getUser();
     return user ? user.role : null;
+  }
+
+  //user-management
+  getUsers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/api/users`, { headers: this.getAuthHeaders() });
+  }
+
+  createUser(user: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/users`, user, { headers: this.getAuthHeaders() });
+  }
+
+  updateUser(id: number, user: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/api/users/${id}`, user, { headers: this.getAuthHeaders() });
+  }
+
+  deleteUser(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/api/users/${id}`, { headers: this.getAuthHeaders() });
+  }
+
+  // KPI Management Methods
+  getKpis(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/api/kpis`, { headers: this.getAuthHeaders() });
+  }
+
+  createKpi(kpiData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/kpis`, kpiData, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  updateKpi(id: number, kpi: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/api/kpis/${id}`, kpi, { headers: this.getAuthHeaders() });
+  }
+
+  deleteKpi(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/api/kpis/${id}`, { headers: this.getAuthHeaders() });
   }
 }

@@ -2,13 +2,10 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 
-// Get the database connection from index.js
-const { db: dbPromise } = require('../index');
 
-// Get all KPIs (accessible to Admin and User)
-router.get('/', authMiddleware(['Admin', 'User']), async (req, res) => {
+router.get('/', authMiddleware(['Admin']), async (req, res) => {
   try {
-    const db = await dbPromise;
+    const db = req.app.locals.db;
     const [rows] = await db.execute('SELECT * FROM kpis');
     res.status(200).json(rows);
   } catch (err) {
@@ -19,22 +16,25 @@ router.get('/', authMiddleware(['Admin', 'User']), async (req, res) => {
 
 // Create a new KPI (accessible to Admin only)
 router.post('/', authMiddleware(['Admin']), async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, unit, target, frequency, visualization } = req.body;
   try {
-    if (!name || !description) {
-      return res.status(400).json({ message: 'Name and description are required' });
+    if (!name || !description || !unit || !target || !frequency || !visualization) {
+      return res.status(400).json({ message: 'Please fill all the required fields.' });
     }
 
-    const db = await dbPromise;
+    const db = req.app.locals.db;
     const [result] = await db.execute(
-      'INSERT INTO kpis (name, description) VALUES (?, ?)',
-      [name, description]
+      'INSERT INTO kpis (name, description, unit, target, frequency, visualization) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, description, unit, target, frequency, visualization]
     );
 
-    res.status(201).json({ id: result.insertId, name, description });
+    res.status(201).json({ id: result.insertId, name, description, unit, target, frequency, visualization });
   } catch (err) {
-    console.error('Error creating KPI:', err);
-    res.status(500).json({ message: 'Failed to create KPI', error: 'Database error' });
+    console.error('SQL Error creating KPI:', err.message, err.sqlMessage);
+    res.status(500).json({ 
+      message: 'Failed to create KPI',
+      error: err.sqlMessage || 'Database error'  // Send actual SQL error
+    });
   }
 });
 
