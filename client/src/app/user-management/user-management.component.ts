@@ -18,9 +18,20 @@ export class UserManagementComponent implements OnInit {
     extension: '',
     email: '',
     role: 'User',
-    department: '',
     status: 'Active'
   };
+
+  showEditModal = false;
+  editUser: any = {
+    id: 0,
+    firstName: '',
+    lastName: '',
+    extension: '',
+    email: '',
+    role: 'User',
+    status: 'Active'
+  };
+
 
   constructor(private authService: AuthService) { }
 
@@ -39,6 +50,7 @@ export class UserManagementComponent implements OnInit {
     );
   }
 
+//CREATE USER 
   openCreateModal(): void {
     this.showCreateModal = true;
   }
@@ -60,6 +72,50 @@ export class UserManagementComponent implements OnInit {
     );
   }
 
+//EDIT USER
+openEditModal(user: any): void {
+  const nameParts = user.name.split(' ');
+  this.editUser = {
+    id: user.id,
+    firstName: nameParts[0],
+    lastName: nameParts[nameParts.length - 1],
+    extension: nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '',
+    email: user.email,
+    role: user.role,
+    status: user.status
+  };
+  this.showEditModal = true;
+}
+
+closeEditModal(): void {
+  this.showEditModal = false;
+  this.editUser = {
+    id: 0,
+    firstName: '',
+    lastName: '',
+    extension: '',
+    email: '',
+    role: 'User',
+    status: 'Active'
+  };
+}
+
+updateUser(): void {
+  this.authService.updateUser(this.editUser.id, this.editUser).subscribe(
+    () => {
+      this.loadUsers();
+      this.closeEditModal();
+    },
+    (error) => {
+      console.error('Error updating user:', error);
+    }
+  );
+}
+
+
+
+
+//DELETE USER
   deleteUser(id: number): void {
     if (confirm('Are you sure you want to delete this user?')) {
       this.authService.deleteUser(id).subscribe(
@@ -80,7 +136,6 @@ export class UserManagementComponent implements OnInit {
       extension: '',
       email: '',
       role: 'User',
-      department: '',
       status: 'Active'
     };
   }
