@@ -1,9 +1,5 @@
 HOW TO RUN THE PROJECT
 
-CMD:
-cd "C:\Program Files\MongoDB\Server\8.0\bin"
-mongod --dbpath D:\repos\darwinKPI\data
-
 backend
 PS D:\personal projects\darwinKPI\server>
 node index.js
