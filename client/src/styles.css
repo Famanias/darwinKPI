@@ -4,7 +4,3 @@
 @tailwind utilities;
 
 @import 'tailwindcss';
-
-:root {
-    --edit-delete-color: #888888;
-  }

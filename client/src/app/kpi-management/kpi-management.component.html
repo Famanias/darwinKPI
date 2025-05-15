@@ -38,8 +38,12 @@
               {{ kpi.visualization }}
             </td>
             <td class="p-3 border-b">
-              <button class="text-blue-600 mr-2"><i class="fas fa-edit"></i></button>
-              <button class="text-red-600" (click)="deleteKpi(kpi.id)"><i class="fas fa-trash"></i></button>
+              <button style="color: var(--edit-delete-color)" class="mr-2 hover:opacity-75" (click)="openEditModal(kpi)">
+                <span class="material-icons">edit</span>
+              </button>
+              <button style="color: var(--edit-delete-color)" class="hover:opacity-75" (click)="deleteKpi(kpi.id)">
+                <span class="material-icons">delete</span>
+              </button>
             </td>
           </tr>
         </tbody>
@@ -95,6 +99,52 @@
         <div class="flex justify-end space-x-2">
           <button class="bg-gray-200 px-4 py-2 rounded" (click)="closeCreateModal()">Cancel</button>
           <button class="bg-gray-800 text-white px-4 py-2 rounded" (click)="createKpi()">Add New KPI</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit KPI Modal -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" *ngIf="showEditModal">
+      <div class="bg-white p-6 rounded w-1/2">
+        <h2 class="text-xl font-semibold mb-2">Edit KPI</h2>
+        <p class="text-gray-600 mb-4">Update this Key Performance Indicator.</p>
+        <div class="mb-4">
+          <label class="block mb-1">KPI Name</label>
+          <input type="text" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editKpi.name">
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1">Description</label>
+          <input type="text" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editKpi.description">
+        </div>
+        <div class="mb-4 flex space-x-4">
+          <div class="flex-1">
+            <label class="block mb-1">Unit</label>
+            <select class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editKpi.unit">
+              <option *ngFor="let unit of units" [value]="unit">{{ unit }}</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label class="block mb-1">Target Value</label>
+            <input type="number" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editKpi.target">
+          </div>
+        </div>
+        <div class="mb-4 flex space-x-4">
+          <div class="flex-1">
+            <label class="block mb-1">Measurement Frequency</label>
+            <select class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editKpi.frequency">
+              <option *ngFor="let freq of frequencies" [value]="freq">{{ freq }}</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label class="block mb-1">Visualization Type</label>
+            <select class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editKpi.visualization">
+              <option *ngFor="let vis of visualizations" [value]="vis">{{ vis }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button class="bg-gray-200 px-4 py-2 rounded" (click)="closeEditModal()">Cancel</button>
+          <button class="bg-gray-800 text-white px-4 py-2 rounded" (click)="updateKpi()">Update KPI</button>
         </div>
       </div>
     </div>

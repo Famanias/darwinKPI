@@ -7,7 +7,8 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-kpi-management',
   templateUrl: './kpi-management.component.html',
   styleUrls: ['./kpi-management.component.css'],
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule],
+  standalone: true
 })
 
 export class KpiManagementComponent implements OnInit {
@@ -21,6 +22,18 @@ export class KpiManagementComponent implements OnInit {
     frequency: 'Daily',
     visualization: 'Bar'
   };
+
+  showEditModal = false;
+  editKpi: any = {
+    id: 0,
+    name: '',
+    description: '',
+    unit: 'Number',
+    target: 0,
+    frequency: 'Daily',
+    visualization: 'Bar'
+  };
+  
   templates = [
     'Sales Target', 'Customer Satisfaction', 'Task Completion Rate',
     'Quality Assurance', 'Employee Engagement', 'Revenue Growth', 'Cost Reduction'
@@ -66,6 +79,51 @@ export class KpiManagementComponent implements OnInit {
         console.error('Error creating KPI:', error);
       }
     );
+  }
+
+  openEditModal(kpi: any): void {
+    console.log('Editing KPI:', kpi);
+    this.editKpi = {
+      id: kpi.id,
+      name: kpi.name,
+      description: kpi.description || '',
+      unit: kpi.unit,
+      target: kpi.target,
+      frequency: kpi.frequency,
+      visualization: kpi.visualization
+    };
+    this.showEditModal = true;
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editKpi = {
+      id: 0,
+      name: '',
+      description: '',
+      unit: '',
+      target: 0,
+      frequency: '',
+      visualization: ''
+    };
+  }
+
+  updateKpi(): void {
+    this.authService.updateKpi(this.editKpi.id, this.editKpi).subscribe({
+      next: () => {
+        this.loadKpis();
+        this.closeEditModal();
+        // Optional: Add success notification
+      },
+      error: (error) => {
+        console.error('Full error:', error);
+        if (error.status === 404) {
+          alert('KPI not found. It may have been deleted.');
+        } else {
+          alert('Update failed. Check console for details.');
+        }
+      }
+    });
   }
 
   deleteKpi(id: number): void {

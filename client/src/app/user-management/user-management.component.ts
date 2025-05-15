@@ -112,9 +112,6 @@ updateUser(): void {
   );
 }
 
-
-
-
 //DELETE USER
   deleteUser(id: number): void {
     if (confirm('Are you sure you want to delete this user?')) {
