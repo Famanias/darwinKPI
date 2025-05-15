@@ -3,7 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 
 
-router.get('/', authMiddleware(['Admin']), async (req, res) => {
+router.get('/', authMiddleware(['Admin','User','Analyst']), async (req, res) => {
   try {
     const db = req.app.locals.db;
     const [rows] = await db.execute('SELECT * FROM kpis');
