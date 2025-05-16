@@ -55,7 +55,7 @@ const initializeApp = async () => {
     app.use('/api/auth', authRoutes);
     app.use('/api/kpis', kpiRoutes);
     app.use('/api/users', usersRoutes);
-    app.use('/api/performance', performanceRoutes);
+    app.use('/api/performance-data', performanceRoutes);
 
     // Error handling middleware
     app.use((err, req, res, next) => {

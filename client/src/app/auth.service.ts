@@ -119,4 +119,8 @@ export class AuthService {
   deleteKpi(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/api/kpis/${id}`, { headers: this.getAuthHeaders() });
   }
+
+  getPerformanceHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/api/performance-data/all`, { headers: this.getAuthHeaders() });
+  }
 }

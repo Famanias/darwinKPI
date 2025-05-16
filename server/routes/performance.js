@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/auth');
 const { db: dbPromise } = require('../index');
 
 // Get performance data for a user (accessible to Admin, Analyst, and the user themselves)
-router.get('/:userId', authMiddleware(['Admin', 'Analyst']), async (req, res) => {
+router.get('/:userId', authMiddleware(['Admin', 'Analyst','User']), async (req, res) => {
   const { userId } = req.params;
   try {
     const db = await dbPromise;
@@ -39,6 +39,18 @@ router.post('/', authMiddleware(['Admin', 'Analyst']), async (req, res) => {
   } catch (err) {
     console.error('Error adding performance data:', err);
     res.status(500).json({ message: 'Failed to add performance data', error: 'Database error' });
+  }
+});
+
+// Get all performance data (for dashboard visualizations)
+router.get('/all', authMiddleware(['Admin', 'Analyst', 'User']), async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const [rows] = await db.execute('SELECT * FROM performance_data');
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error fetching all performance data:', err);
+    res.status(500).json({ message: 'Failed to fetch all performance data', error: 'Database error' });
   }
 });
 
