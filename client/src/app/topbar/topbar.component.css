@@ -1,0 +1,38 @@
+.topbar {
+  background-color: #1a202c;
+  color: white;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.date-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.date, .time {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.time {
+  color: #90cdf4;
+}
+
+@media (max-width: 768px) {
+  .date-container {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  .date, .time {
+    font-size: 0.75rem;
+  }
+} 

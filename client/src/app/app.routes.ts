@@ -12,6 +12,7 @@ import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.compo
 import { AnalyticsComponent } from './analytics/analytics.component';
 import { UserManagementComponent } from './user-management/user-management.component';
 import { KpiManagementComponent } from './kpi-management/kpi-management.component';
+import { DataImportComponent } from './data-import/data-import.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -21,6 +22,7 @@ export const routes: Routes = [
   { path: 'analytics', component: AnalyticsComponent, canActivate: [authGuard], data: { roles: ['Admin', 'Analyst'] } },
   { path: 'user-management', component: UserManagementComponent, canActivate: [authGuard], data: { roles: ['Admin'] } },
   { path: 'kpi-management', component: KpiManagementComponent, canActivate: [authGuard], data: { roles: ['Admin'] } },
+  { path: 'data-import', component: DataImportComponent, canActivate: [authGuard], data: { roles: ['User', 'Admin', 'Analyst'] } },
   { path: '', component: WelcomeComponent },
   { path: '**', redirectTo: '' } // Wildcard route for 404
 ];

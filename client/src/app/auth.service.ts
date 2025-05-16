@@ -84,6 +84,11 @@ export class AuthService {
     return user ? user.role : null;
   }
 
+  hasRole(role: string): boolean {
+    const user = this.getUser();
+    return user ? user.role === role : false;
+  }
+
   //user-management
   getUsers(): Observable<any> {
     return this.http.get(`${this.apiUrl}/api/users`, { headers: this.getAuthHeaders() });
