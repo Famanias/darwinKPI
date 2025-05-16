@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-data-import',
@@ -15,6 +16,28 @@ export class DataImportComponent {
   uploadProgress: number = 0;
   uploadSuccess: boolean = false;
   uploadError: string | null = null;
+  importType: 'existing' | 'new' = 'existing';
+  existingKpis: any[] = [];
+  selectedKpi: any = null;
+
+  constructor(private authService: AuthService) {
+    this.loadExistingKpis();
+  }
+
+  loadExistingKpis(): void {
+    this.authService.getKpis().subscribe(
+      (data) => {
+        this.existingKpis = data;
+      },
+      (error) => {
+        console.error('Error fetching KPIs:', error);
+      }
+    );
+  }
+
+  selectKpi(kpi: any): void {
+    this.selectedKpi = kpi;
+  }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
@@ -41,13 +64,14 @@ export class DataImportComponent {
 
   async uploadFile(): Promise<void> {
     if (!this.selectedFile) return;
+    if (this.importType === 'existing' && !this.selectedKpi) return;
 
     this.isUploading = true;
     this.uploadProgress = 0;
     this.uploadError = null;
 
     try {
-      // Simulate file upload progress
+      //implement the actual file upload and processing
       await this.simulateFileUpload();
       
       this.uploadSuccess = true;

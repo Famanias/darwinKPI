@@ -1,6 +1,46 @@
 <div class="data-import-container">
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Data Import</h1>
     
+    <!-- Import Type Selection -->
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold mb-4">Select Import Type</h2>
+      <div class="flex space-x-4">
+        <button 
+          [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'existing' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
+          (click)="importType = 'existing'">
+          Import to Existing KPI
+        </button>
+        <button 
+          [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'new' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
+          (click)="importType = 'new'">
+          Import New KPI
+        </button>
+      </div>
+    </div>
+
+    <!-- Existing KPI Selection -->
+    @if (importType === 'existing') {
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4">Select Target KPI</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (kpi of existingKpis; track kpi.id) {
+            <div 
+              class="p-4 border rounded-lg cursor-pointer transition duration-200"
+              [class.border-blue-500]="selectedKpi?.id === kpi.id"
+              [class.bg-blue-50]="selectedKpi?.id === kpi.id"
+              (click)="selectKpi(kpi)">
+              <h3 class="font-medium">{{ kpi.name }}</h3>
+              <p class="text-sm text-gray-600">{{ kpi.description || 'No description' }}</p>
+              <div class="mt-2 text-sm">
+                <span class="text-gray-500">Unit: </span>
+                <span class="text-gray-700">{{ kpi.unit }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    
     <!-- File Upload Section -->
     <div class="upload-section">
       <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -12,7 +52,16 @@
         
         <div class="mb-4">
           <h3 class="text-lg font-medium text-gray-900">Upload your data file</h3>
-          <p class="mt-1 text-sm text-gray-500">CSV or Excel files only</p>
+          <p class="mt-1 text-sm text-gray-500">
+            @if (importType === 'existing') {
+              Upload data for {{ selectedKpi?.name || 'the selected KPI' }} (CSV or Excel)
+            } @else {
+              Upload new KPI definition and data (CSV or Excel)
+            }
+          </p>
+          @if (importType === 'existing' && !selectedKpi) {
+            <p class="mt-2 text-sm text-orange-500">Please select a KPI first</p>
+          }
         </div>
 
         <div class="flex justify-center">
@@ -32,7 +81,7 @@
 
     <!-- Upload Progress -->
     @if (isUploading) {
-      <div class="progress-section">
+      <div class="progress-section mt-8">
         <div class="bg-gray-200 rounded-full h-2 mb-2">
           <div class="bg-blue-500 h-2 rounded-full transition-all duration-200"
                [style.width.%]="uploadProgress"></div>
@@ -43,7 +92,7 @@
 
     <!-- Success Message -->
     @if (uploadSuccess) {
-      <div class="message-section">
+      <div class="message-section mt-8">
         <div class="p-4 bg-green-100 text-green-700 rounded-lg">
           <p class="text-center">File uploaded successfully!</p>
         </div>
@@ -52,7 +101,7 @@
 
     <!-- Error Message -->
     @if (uploadError) {
-      <div class="message-section">
+      <div class="message-section mt-8">
         <div class="p-4 bg-red-100 text-red-700 rounded-lg">
           <p class="text-center">{{ uploadError }}</p>
         </div>
@@ -60,9 +109,9 @@
     }
 
     <!-- Upload Button -->
-    <div class="button-section">
+    <div class="button-section mt-8">
       <button (click)="uploadFile()"
-              [disabled]="!selectedFile || isUploading"
+              [disabled]="!selectedFile || isUploading || (importType === 'existing' && !selectedKpi)"
               class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200">
         Upload Data
       </button>
