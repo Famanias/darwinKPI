@@ -8,6 +8,7 @@
   padding: 1.5rem;
 }
 
+
 .dashboard-header {
   position: sticky;
   top: 0;
@@ -23,7 +24,7 @@
   color: #fff;
   box-shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
   animation: stickyPop 0.4s cubic-bezier(0.4,0,0.2,1);
-  padding: 1.03rem;
+  padding: 1.151rem 2rem;
 }
 
 @keyframes stickyPop {
@@ -38,7 +39,7 @@
 }
 
 .dashboard-header {
-  padding: 1.03rem;
+  padding: 2rem;
 }
 
 .attention-banner {
