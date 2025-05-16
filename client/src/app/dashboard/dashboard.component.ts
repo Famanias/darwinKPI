@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ViewChildren, QueryList, E
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
+import { interval, Subscription } from 'rxjs';
 
 // Define the Kpi interface
 interface Kpi {
@@ -34,15 +35,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   widgets: Kpi[] = [];
   attentionRequired: string | null = null;
   performanceHistory: PerformanceData[] = [];
+  isSticky = false;
 
   @ViewChildren('kpiChart') kpiChartRefs!: QueryList<ElementRef>;
   private kpiCharts: Chart[] = [];
+  private pollingSubscription!: Subscription;
 
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.loadKpis();
-    this.loadPerformanceHistory();
+    this.startPolling();
     this.loadWidgetState();
   }
 
@@ -52,10 +54,34 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log('kpiChartRefs changed, re-setting up charts');
       this.setupKpiCharts();
     });
+    window.addEventListener('scroll', this.handleScroll, true);
   }
 
   ngOnDestroy(): void {
     this.kpiCharts.forEach(chart => chart.destroy());
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+    }
+    window.removeEventListener('scroll', this.handleScroll, true);
+  }
+
+  startPolling(): void {
+    this.pollingSubscription = interval(5000).subscribe(() => {
+      console.log('Polling for updates...');
+      this.loadKpis();
+      this.loadPerformanceHistory();
+    });
+    this.loadKpis();
+    this.loadPerformanceHistory();
+  }
+
+  handleScroll = (): void => {
+    this.isSticky = window.scrollY > 30;
+  };
+
+  manualRefresh(): void {
+    this.loadKpis();
+    this.loadPerformanceHistory();
   }
 
   loadKpis(): void {
@@ -116,7 +142,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         unit: kpi.unit
       }));
     }
-
     this.saveWidgetState();
     console.log('Initialized Widgets:', this.widgets);
   }
