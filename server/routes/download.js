@@ -3,9 +3,6 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const PDFDocument = require("pdfkit");
 
-// Get the database connection from index.js
-const { db: dbPromise } = require("../index");
-
 // Helper to format dates
 function formatDate(date) {
   const d = new Date(date);
@@ -17,20 +14,21 @@ router.get(
   authMiddleware(["Admin", "User", "Analyst"]),
   async (req, res) => {
     try {
-      const db = await dbPromise;
+      const db = req.app.locals.db;
 
       // Get KPIs
-      const [kpis] = await db.query("SELECT * FROM kpis");
+      const [kpis] = await db.execute("SELECT * FROM kpis");
       if (!kpis.length) {
         return res.status(404).json({ message: "No KPIs found" });
       }
 
       // Get performance data for all KPIs
       const kpiIds = kpis.map((kpi) => kpi.id);
-      const [performanceData] = await db.query(
+      const [performanceData] = await db.execute(
         "SELECT * FROM performance_data WHERE kpi_id IN (?) ORDER BY date ASC",
         [kpiIds]
       );
+      console.log("Performance data:", performanceData);
 
       // Create PDF document
       const doc = new PDFDocument({ margin: 50 });
@@ -100,10 +98,10 @@ router.post(
     }
 
     try {
-      const db = await dbPromise;
+      const db = req.app.locals.db;
 
       // Get KPIs
-      const [kpis] = await db.query("SELECT * FROM kpis WHERE id IN (?)", [
+      const [kpis] = await db.execute("SELECT * FROM kpis WHERE id IN (?)", [
         kpiIds,
       ]);
       if (!kpis.length) {
@@ -111,7 +109,7 @@ router.post(
       }
 
       // Get performance data for the KPIs
-      const [performanceData] = await db.query(
+      const [performanceData] = await db.execute(
         "SELECT * FROM performance_data WHERE kpi_id IN (?) ORDER BY date ASC",
         [kpiIds]
       );
@@ -177,16 +175,18 @@ router.get(
   async (req, res) => {
     const { kpiId } = req.params;
     try {
-      const db = await dbPromise;
+      const db = req.app.locals.db;
 
       // Get KPI
-      const [kpis] = await db.query("SELECT * FROM kpis WHERE id = ?", [kpiId]);
+      const [kpis] = await db.execute("SELECT * FROM kpis WHERE id = ?", [
+        kpiId,
+      ]);
       if (!kpis.length) {
         return res.status(404).json({ message: "KPI not found" });
       }
 
       // Get performance data for the KPI
-      const [performanceData] = await db.query(
+      const [performanceData] = await db.execute(
         "SELECT * FROM performance_data WHERE kpi_id = ? ORDER BY date ASC",
         [kpiId]
       );
