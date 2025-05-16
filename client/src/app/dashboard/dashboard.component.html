@@ -1,10 +1,6 @@
-  <div class="dashboard-header flex justify-between items-center transition-all duration-300" [class.sticky]="isSticky"
-    [class.bg-gray-900]="isSticky" [class.text-white]="isSticky">
-    <h2 class="text-2xl font-bold">My Dashboard</h2>
-    <button (click)="manualRefresh()" class="bg-blue-500 px-5 py-2 rounded-lg text-white">Refresh</button>
-  </div>
+<div class="dashboard-container p-6">
+  <h2 class="text-2xl font-bold mb-4">My Dashboard</h2>
 
-<div class="dashboard-container">
   <!-- Attention Required -->
   <div class="bg-yellow-100 p-4 rounded mb-4" *ngIf="attentionRequired">
     <span class="font-medium">Attention Required</span>
@@ -15,13 +11,17 @@
   <div class="dashboard-content">
     <!-- Widgets Area -->
     <div class="widgets-grid">
-      <div *ngFor="let widget of widgets; let i = index" 
-           class="widget bg-white rounded shadow">
+      <div *ngFor="let widget of widgets; let i = index" class="widget bg-white rounded shadow">
         <div class="widget-header">
           <h3 class="text-lg font-semibold">{{ widget.name }}</h3>
         </div>
         <div class="widget-content">
-          <!-- Placeholder content (to be populated dynamically later) -->
+          <p><strong>Test Description:</strong> Test Description</p>
+          <p><strong>Target:</strong> {{ widget.target }} {{ widget.unit }}</p>
+          <p><strong>Frequency:</strong> {{ widget.frequency }}</p>
+          <div class="chart-container">
+            <canvas #kpiChart [id]="'kpiChart-' + i"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -31,12 +31,8 @@
       <h3 class="text-lg font-semibold mb-2">Dashboard Configuration</h3>
       <p class="text-sm text-gray-600 mb-4">Toggle KPIs to display</p>
       <div class="config-list">
-        <div *ngFor="let kpi of kpis; let i = index" 
-             class="config-item bg-white rounded p-2 mb-2">
-          <input type="checkbox" 
-                 [checked]="isKpiSelected(kpi.name)" 
-                 (change)="toggleKpi(kpi.name)" 
-                 class="mr-2">
+        <div *ngFor="let kpi of kpis; let i = index" class="config-item bg-white rounded p-2 mb-2">
+          <input type="checkbox" [checked]="isKpiSelected(kpi.name)" (change)="toggleKpi(kpi.name)" class="mr-2">
           <span>{{ kpi.name }}</span>
         </div>
       </div>
