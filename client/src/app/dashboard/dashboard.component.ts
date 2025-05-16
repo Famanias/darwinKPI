@@ -18,13 +18,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   widgets: any[] = [];
   attentionRequired: string | null = null;
   performanceHistory: any[] = [];
+  isSticky = false;
 
   @ViewChild('performanceTrendChart') performanceTrendChartRef!: ElementRef;
   @ViewChildren('kpiChart') kpiChartRefs!: QueryList<ElementRef>;
   private trendChart: Chart | undefined;
   private kpiCharts: Chart[] = [];
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   private pollingSubscription!: Subscription;
   ngOnInit(): void {
@@ -40,6 +41,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.kpiChartRefs.changes.subscribe(() => {
       this.setupKpiCharts();
     });
+    window.addEventListener('scroll', this.handleScroll, true);
   }
 
   ngOnDestroy(): void {
@@ -51,6 +53,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.pollingSubscription) {
       this.pollingSubscription.unsubscribe();
     }
+    window.removeEventListener('scroll', this.handleScroll, true);
   }
 
   startPolling(): void {
@@ -64,6 +67,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadKpis();
     this.loadPerformanceHistory();
   }
+
+  handleScroll = (): void => {
+    this.isSticky = window.scrollY > 30;
+  };
 
   manualRefresh(): void {
     this.loadKpis();
@@ -147,9 +154,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getKpiValue(kpi: any): string {
     const currentValue = this.getLatestKpiValue(kpi.id);
-    return `${currentValue || Math.round(kpi.target * 0.85)} ${
-      kpi.unit === 'Currency' ? 'USD' : kpi.unit
-    } / ${kpi.target} ${kpi.unit === 'Currency' ? 'USD' : kpi.unit}`;
+    return `${currentValue || Math.round(kpi.target * 0.85)} ${kpi.unit === 'Currency' ? 'USD' : kpi.unit
+      } / ${kpi.target} ${kpi.unit === 'Currency' ? 'USD' : kpi.unit}`;
   }
 
   getKpiTrend(kpi: any): string {
@@ -206,7 +212,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     const daysLeft = Math.ceil(
       (dueDate.getTime() - new Date('2025-05-15').getTime()) /
-        (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24)
     );
     return `${dueDate.toLocaleDateString('en-US', {
       month: 'numeric',
@@ -368,22 +374,22 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
             scales:
               chartType !== 'pie'
                 ? {
-                    x: {
+                  x: {
+                    display: true,
+                    title: {
                       display: true,
-                      title: {
-                        display: true,
-                        text: 'Time',
-                      },
+                      text: 'Time',
                     },
-                    y: {
+                  },
+                  y: {
+                    display: true,
+                    title: {
                       display: true,
-                      title: {
-                        display: true,
-                        text: 'Value',
-                      },
-                      beginAtZero: true,
+                      text: 'Value',
                     },
-                  }
+                    beginAtZero: true,
+                  },
+                }
                 : undefined,
           },
         };
