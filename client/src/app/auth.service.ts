@@ -126,6 +126,6 @@ export class AuthService {
   }
 
   getPerformanceHistory(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/api/performance-data/all`, { headers: this.getAuthHeaders() });
+    return this.http.get<any[]>(`${this.apiUrl}/api/performance-data/${this.getUser()?.id}`, { headers: this.getAuthHeaders() });
   }
 }

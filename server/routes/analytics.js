@@ -29,8 +29,8 @@ router.get('/kpi/all', authMiddleware(['Admin', 'Analyst', 'User']), async (req,
     });
     res.status(200).json(kpiData);
   } catch (err) {
-    console.error('Error fetching KPI performance data:', err);
-    res.status(500).json({ message: 'Failed to fetch KPI performance data', error: 'Database error' });
+    console.error('Error fetching KPI performance data:', err.message, err.stack);
+    res.status(500).json({ message: 'Failed to fetch KPI performance data', error: err.message });
   }
 });
 

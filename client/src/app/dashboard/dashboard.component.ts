@@ -67,7 +67,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startPolling(): void {
-    this.pollingSubscription = interval(5000).subscribe(() => {
+    this.pollingSubscription = interval(60000).subscribe(() => {
       console.log('Polling for updates...');
       this.loadKpis();
       this.loadPerformanceHistory();
