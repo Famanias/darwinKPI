@@ -24,6 +24,7 @@ export class DataImportComponent {
   showPopup: boolean = false;
   popupMessage: string = '';
   popupType: 'success' | 'error' = 'error';
+importType: any;
 
   constructor(private authService: AuthService) {
     this.loadExistingKpis();

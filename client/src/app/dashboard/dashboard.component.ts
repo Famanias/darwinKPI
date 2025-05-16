@@ -36,6 +36,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   attentionRequired: string | null = null;
   performanceHistory: PerformanceData[] = [];
   isSticky = false;
+  showConfig = false;
 
   @ViewChildren('kpiChart') kpiChartRefs!: QueryList<ElementRef>;
   private kpiCharts: Chart[] = [];
