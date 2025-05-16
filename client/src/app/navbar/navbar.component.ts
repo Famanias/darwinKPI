@@ -25,7 +25,9 @@ export class NavbarComponent {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/']); // Redirect to home page after logout
+    if (confirm('Are you sure you want to logout?')) {
+      this.authService.logout();
+      this.router.navigate(['/']); // Redirect to home page after logout
+    }
   }
 } 

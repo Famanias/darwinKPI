@@ -1,8 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, ViewChildren, QueryList } from '@angular/core';
-import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import Chart from 'chart.js/auto';
 
 @Component({
@@ -10,7 +8,7 @@ import Chart from 'chart.js/auto';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
   standalone: true,
-  imports: [CommonModule, DragDropModule]
+  imports: [CommonModule]
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   kpis: any[] = [];
@@ -32,10 +30,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Setup charts after the view is initialized
     this.setupPerformanceTrendChart();
     this.setupKpiCharts();
-    // Listen for changes in kpiChartRefs (e.g., if widgets are reordered)
     this.kpiChartRefs.changes.subscribe(() => {
       this.setupKpiCharts();
     });
@@ -52,7 +48,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.authService.getKpis().subscribe(
       (data) => {
         this.kpis = data;
-        this.mapKpisToWidgets();
+        this.initializeWidgets();
         this.checkPendingUpdates();
         this.setupKpiCharts();
       },
@@ -75,94 +71,56 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  mapKpisToWidgets(): void {
-    const kpiWidgets = this.kpis.map(kpi => ({
-      id: `kpi-${kpi.id}`,
-      name: kpi.name,
-      value: this.getKpiValue(kpi),
-      trend: this.getKpiTrend(kpi),
-      type: 'card',
-      visualization: kpi.visualization
-    }));
-
-    const staticWidgets = [
-      { id: 'performanceTrend', name: 'My Performance Trend', content: 'Performance vs Target over time', type: 'chart' },
-      {
-        id: 'pendingUpdates',
-        name: 'Pending KPI Updates',
-        items: this.getPendingUpdates(),
-        type: 'list'
-      },
-      { id: 'performanceSummary', name: 'Overall Performance Summary', content: 'Your performance across all KPIs', type: 'summary' }
-    ];
-
-    this.widgets = [...kpiWidgets, ...staticWidgets];
-
+  initializeWidgets(): void {
     const savedState = localStorage.getItem('dashboardWidgets');
     if (savedState) {
       const savedWidgets = JSON.parse(savedState);
-      const widgetMap = new Map(this.widgets.map(w => [w.id, w]));
-      this.widgets = savedWidgets
-        .map((saved: any) => widgetMap.get(saved.id))
-        .filter((w: any) => w !== undefined);
-      const savedIds = new Set(savedWidgets.map((w: any) => w.id));
-      const newWidgets = this.widgets.filter(w => !savedIds.has(w.id));
-      this.widgets.push(...newWidgets);
+      this.widgets = this.kpis
+        .filter(kpi => savedWidgets.some((w: any) => w.name === kpi.name))
+        .map(kpi => ({
+          id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
+          name: kpi.name,
+          type: 'card'
+        }));
+    } else {
+      this.widgets = this.kpis.map(kpi => ({
+        id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
+        name: kpi.name,
+        type: 'card'
+      }));
     }
 
     this.saveWidgetState();
   }
 
-  getKpiValue(kpi: any): string {
-    const currentValue = this.getLatestKpiValue(kpi.id);
-    return `${currentValue || Math.round(kpi.target * 0.85)} ${kpi.unit === 'Currency' ? 'USD' : kpi.unit} / ${kpi.target} ${kpi.unit === 'Currency' ? 'USD' : kpi.unit}`;
+  isKpiSelected(kpiName: string): boolean {
+    return this.widgets.some(w => w.name === kpiName);
   }
 
-  getKpiTrend(kpi: any): string {
-    const history = this.performanceHistory.filter(entry => entry.kpi_id === kpi.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    if (history.length < 2) return `+${Math.round(Math.random() * 10)}% from previous ${kpi.frequency.toLowerCase()}`;
-    const latest = history[0].value;
-    const previous = history[1].value;
-    const trend = ((latest - previous) / previous) * 100;
-    return `${trend >= 0 ? '+' : ''}${trend.toFixed(1)}% from previous ${kpi.frequency.toLowerCase()}`;
-  }
-
-  getLatestKpiValue(kpiId: number): number | null {
-    const history = this.performanceHistory.filter(entry => entry.kpi_id === kpiId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return history.length > 0 ? history[0].value : null;
-  }
-
-  getPendingUpdates(): any[] {
-    return this.kpis.slice(0, 3).map(kpi => ({
-      name: kpi.name,
-      due: this.calculateDueDate(kpi.frequency)
-    }));
-  }
-
-  calculateDueDate(frequency: string): string {
-    const today = new Date('2025-05-15');
-    let dueDate: Date;
-    switch (frequency.toLowerCase()) {
-      case 'daily':
-        dueDate = new Date(today.setDate(today.getDate() + 1));
-        break;
-      case 'weekly':
-        dueDate = new Date(today.setDate(today.getDate() + 7));
-        break;
-      case 'monthly':
-        dueDate = new Date(today.setMonth(today.getMonth() + 1));
-        break;
-      case 'quarterly':
-        dueDate = new Date(today.setMonth(today.getMonth() + 3));
-        break;
-      case 'yearly':
-        dueDate = new Date(today.setFullYear(today.getFullYear() + 1));
-        break;
-      default:
-        dueDate = new Date(today.setDate(today.getDate() + 1));
+  toggleKpi(kpiName: string): void {
+    const kpi = this.kpis.find(k => k.name === kpiName);
+    if (kpi && !this.isKpiSelected(kpiName)) {
+      this.widgets.push({
+        id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
+        name: kpi.name,
+        type: 'card'
+      });
+    } else if (kpi) {
+      this.widgets = this.widgets.filter(w => w.name !== kpiName);
     }
-    const daysLeft = Math.ceil((dueDate.getTime() - new Date('2025-05-15').getTime()) / (1000 * 60 * 60 * 24));
-    return `${dueDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })} (${daysLeft} days left)`;
+    this.saveWidgetState();
+    this.setupKpiCharts();
+  }
+
+  loadWidgetState(): void {
+    const savedState = localStorage.getItem('dashboardWidgets');
+    if (savedState) {
+      this.widgets = JSON.parse(savedState);
+    }
+  }
+
+  saveWidgetState(): void {
+    localStorage.setItem('dashboardWidgets', JSON.stringify(this.widgets));
   }
 
   checkPendingUpdates(): void {
@@ -245,17 +203,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setupKpiCharts(): void {
-    // Destroy existing KPI charts
     this.kpiCharts.forEach(chart => chart.destroy());
     this.kpiCharts = [];
 
-    // Wait for the next tick to ensure the DOM is updated
     setTimeout(() => {
       this.widgets.forEach((widget, index) => {
         if (widget.type !== 'card') return;
-
-        const kpi = this.kpis.find(k => `kpi-${k.id}` === widget.id);
-        if (!kpi) return;
 
         const canvasElement = document.getElementById(`kpiChart-${index}`);
         if (!canvasElement) return;
@@ -263,9 +216,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         const ctx = (canvasElement as HTMLCanvasElement).getContext('2d');
         if (!ctx) return;
 
+        const kpi = this.kpis.find(k => `kpi-${k.id}` === widget.id) || { id: index + 1, name: widget.name };
         const history = this.performanceHistory.filter(entry => entry.kpi_id === kpi.id)
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
+
         if (history.length === 0) return;
 
         const labels = history.map(entry => new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
@@ -277,7 +231,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           data: {
             labels: labels,
             datasets: [{
-              label: kpi.name,
+              label: widget.name,
               data: data,
               backgroundColor: chartType === 'pie' ? this.getRandomColors(data.length) : this.getRandomColor(),
               borderColor: chartType !== 'pie' ? this.getRandomColor() : undefined,
@@ -296,21 +250,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
               }
             },
             scales: chartType !== 'pie' ? {
-              x: {
-                display: true,
-                title: {
-                  display: true,
-                  text: 'Time'
-                }
-              },
-              y: {
-                display: true,
-                title: {
-                  display: true,
-                  text: 'Value'
-                },
-                beginAtZero: true
-              }
+              x: { display: true, title: { display: true, text: 'Time' } },
+              y: { display: true, title: { display: true, text: 'Value' }, beginAtZero: true }
             } : undefined
           }
         };
@@ -354,30 +295,5 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     const [current, target] = value.split('/').map(v => parseFloat(v.trim()));
     if (target === 0) return 0;
     return Math.min((current / target) * 100, 100);
-  }
-
-  drop(event: CdkDragDrop<any[]>): void {
-    if (event.previousContainer === event.container) {
-      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-    } else {
-      transferArrayItem(
-        event.previousContainer.data,
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
-    }
-    this.saveWidgetState();
-  }
-
-  loadWidgetState(): void {
-    const savedState = localStorage.getItem('dashboardWidgets');
-    if (savedState) {
-      this.widgets = JSON.parse(savedState);
-    }
-  }
-
-  saveWidgetState(): void {
-    localStorage.setItem('dashboardWidgets', JSON.stringify(this.widgets));
   }
 }

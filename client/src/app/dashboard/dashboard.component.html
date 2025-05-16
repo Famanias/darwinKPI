@@ -7,62 +7,33 @@
     <p>{{ attentionRequired }}</p>
   </div>
 
-  <!-- Widgets Area -->
-  <div cdkDropList class="widgets-grid" (cdkDropListDropped)="drop($event)">
-    <!-- KPI Cards -->
-    <div *ngFor="let widget of widgets; let i = index" 
-         cdkDrag 
-         [cdkDragData]="widget" 
-         class="widget bg-white rounded shadow">
-      <div class="widget-header">
-        <div class="handle" cdkDragHandle>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="9" r="1"></circle><circle cx="9" cy="15" r="1"></circle><circle cx="15" cy="9" r="1"></circle><circle cx="15" cy="15" r="1"></circle>
-          </svg>
+  <!-- Main Content with Widgets and Configuration -->
+  <div class="dashboard-content">
+    <!-- Widgets Area -->
+    <div class="widgets-grid">
+      <div *ngFor="let widget of widgets; let i = index" 
+           class="widget bg-white rounded shadow">
+        <div class="widget-header">
+          <h3 class="text-lg font-semibold">{{ widget.name }}</h3>
         </div>
-        <h3 class="text-lg font-semibold">{{ widget.name }}</h3>
+        <div class="widget-content">
+          <!-- Placeholder content (to be populated dynamically later) -->
+        </div>
       </div>
+    </div>
 
-      <div class="widget-content" [ngClass]="widget.type">
-        <!-- KPI Card Widget -->
-        <div *ngIf="widget.type === 'card'" class="kpi-content">
-          <p class="text-2xl">{{ widget.value }}</p>
-          <div class="progress-bar">
-            <div class="bg-gray-200 rounded-full h-2.5">
-              <div class="bg-blue-600 h-2.5 rounded-full" [style.width]="calculateProgress(widget.value) + '%'"></div>
-            </div>
-            <p class="text-sm text-gray-600">{{ widget.trend }}</p>
-          </div>
-          <div class="chart-container">
-            <canvas [attr.id]="'kpiChart-' + i" #kpiChart></canvas>
-          </div>
-        </div>
-
-        <!-- Chart Widget -->
-        <div *ngIf="widget.type === 'chart'" class="chart-widget">
-          <div class="chart-container">
-            <canvas #performanceTrendChart></canvas>
-          </div>
-          <p class="text-sm text-gray-600">{{ widget.content }}</p>
-        </div>
-
-        <!-- List Widget -->
-        <div *ngIf="widget.type === 'list'" class="list-widget">
-          <ul>
-            <li *ngFor="let item of widget.items" class="list-item">
-              <span class="item-name">{{ item.name }}</span>
-              <div class="item-actions">
-                <span class="text-red-600">{{ item.due }}</span>
-                <button class="text-blue-600 update-btn">Update</button>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Summary Widget -->
-        <div *ngIf="widget.type === 'summary'" class="summary-widget">
-          <p class="text-sm text-gray-600">{{ widget.content }}</p>
-          <button class="text-blue-600 mt-2">Export Report</button>
+    <!-- Dashboard Configuration Panel -->
+    <div class="config-panel bg-gray-100 p-4 rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">Dashboard Configuration</h3>
+      <p class="text-sm text-gray-600 mb-4">Toggle KPIs to display</p>
+      <div class="config-list">
+        <div *ngFor="let kpi of kpis; let i = index" 
+             class="config-item bg-white rounded p-2 mb-2">
+          <input type="checkbox" 
+                 [checked]="isKpiSelected(kpi.name)" 
+                 (change)="toggleKpi(kpi.name)" 
+                 class="mr-2">
+          <span>{{ kpi.name }}</span>
         </div>
       </div>
     </div>
