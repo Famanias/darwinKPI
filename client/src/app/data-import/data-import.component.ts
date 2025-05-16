@@ -16,7 +16,7 @@ export class DataImportComponent {
   uploadProgress: number = 0;
   uploadSuccess: boolean = false;
   uploadError: string | null = null;
-  importType: 'existing' | 'new' = 'existing';
+  // importType: 'existing' | 'new' = 'existing';
   existingKpis: any[] = [];
   selectedKpi: any = null;
 
@@ -64,13 +64,15 @@ export class DataImportComponent {
 
   async uploadFile(): Promise<void> {
     if (!this.selectedFile) return;
-    if (this.importType === 'existing' && !this.selectedKpi) return;
+    // if (this.importType === 'existing' && !this.selectedKpi) return;
 
     this.isUploading = true;
     this.uploadProgress = 0;
     this.uploadError = null;
 
     try {
+
+
       //implement the actual file upload and processing
       await this.simulateFileUpload();
       
