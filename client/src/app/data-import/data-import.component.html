@@ -1,7 +1,33 @@
 <div class="data-import-container">
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Data Import</h1>
     
-    <!-- Import Type Selection -->
+    <!-- Popup Message -->
+    @if (showPopup) {
+      <div class="fixed top-4 right-4 max-w-md z-50 animate-popup">
+        <div class="rounded-lg shadow-lg p-4" 
+             [class]="popupType === 'success' ? 'bg-green-100' : 'bg-red-100'">
+          <div class="flex items-center">
+            <!-- Success Icon -->
+            @if (popupType === 'success') {
+              <svg class="w-5 h-5 mr-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            }
+            <!-- Error Icon -->
+            @if (popupType === 'error') {
+              <svg class="w-5 h-5 mr-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+            }
+            <p [class]="popupType === 'success' ? 'text-green-800' : 'text-red-800'">
+              {{ popupMessage }}
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Import Type Selection
     <div class="mb-8">
       <h2 class="text-lg font-semibold mb-4">Select Import Type</h2>
       <div class="flex space-x-4">
@@ -16,10 +42,10 @@
           Import New KPI
         </button>
       </div>
-    </div>
+    </div> -->
 
     <!-- Existing KPI Selection -->
-    @if (importType === 'existing') {
+    <!-- @if (importType === 'existing') { -->
       <div class="mb-8">
         <h2 class="text-lg font-semibold mb-4">Select Target KPI</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -39,7 +65,7 @@
           }
         </div>
       </div>
-    }
+    <!-- } -->
     
     <!-- File Upload Section -->
     <div class="upload-section">
@@ -90,24 +116,6 @@
       </div>
     }
 
-    <!-- Success Message -->
-    @if (uploadSuccess) {
-      <div class="message-section mt-8">
-        <div class="p-4 bg-green-100 text-green-700 rounded-lg">
-          <p class="text-center">File uploaded successfully!</p>
-        </div>
-      </div>
-    }
-
-    <!-- Error Message -->
-    @if (uploadError) {
-      <div class="message-section mt-8">
-        <div class="p-4 bg-red-100 text-red-700 rounded-lg">
-          <p class="text-center">{{ uploadError }}</p>
-        </div>
-      </div>
-    }
-
     <!-- Upload Button -->
     <div class="button-section mt-8">
       <button (click)="uploadFile()"
@@ -117,4 +125,21 @@
       </button>
     </div>
   
-</div> 
+</div>
+
+<style>
+.animate-popup {
+  animation: popup 0.3s ease-out;
+}
+
+@keyframes popup {
+  0% {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style> 

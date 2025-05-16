@@ -16,9 +16,15 @@ export class DataImportComponent {
   uploadProgress: number = 0;
   uploadSuccess: boolean = false;
   uploadError: string | null = null;
-  importType: 'existing' | 'new' = 'existing';
+  // importType: 'existing' | 'new' = 'existing';
   existingKpis: any[] = [];
   selectedKpi: any = null;
+
+  // Add popup message properties
+  showPopup: boolean = false;
+  popupMessage: string = '';
+  popupType: 'success' | 'error' = 'error';
+importType: any;
 
   constructor(private authService: AuthService) {
     this.loadExistingKpis();
@@ -31,6 +37,7 @@ export class DataImportComponent {
       },
       (error) => {
         console.error('Error fetching KPIs:', error);
+        this.showErrorPopup('Failed to load KPIs');
       }
     );
   }
@@ -39,16 +46,33 @@ export class DataImportComponent {
     this.selectedKpi = kpi;
   }
 
+  showErrorPopup(message: string): void {
+    this.popupMessage = message;
+    this.popupType = 'error';
+    this.showPopup = true;
+    setTimeout(() => {
+      this.showPopup = false;
+    }, 5000);
+  }
+
+  showSuccessPopup(message: string): void {
+    this.popupMessage = message;
+    this.popupType = 'success';
+    this.showPopup = true;
+    setTimeout(() => {
+      this.showPopup = false;
+    }, 5000);
+  }
+
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      // Check if file is CSV or Excel
       if (this.isValidFileType(file)) {
         this.selectedFile = file;
         this.uploadError = null;
       } else {
-        this.uploadError = 'Please select a CSV or Excel file';
         this.selectedFile = null;
+        this.showErrorPopup('Please select a CSV or Excel file');
       }
     }
   }
@@ -63,26 +87,60 @@ export class DataImportComponent {
   }
 
   async uploadFile(): Promise<void> {
-    if (!this.selectedFile) return;
-    if (this.importType === 'existing' && !this.selectedKpi) return;
+    if (!this.selectedFile || !this.selectedKpi) {
+      this.showErrorPopup('Please select both a KPI and a file');
+      return;
+    }
 
     this.isUploading = true;
     this.uploadProgress = 0;
-    this.uploadError = null;
+
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+    formData.append('kpi_id', this.selectedKpi.id);
+    
+    // Get the current user's information
+    const user = this.authService.getUser();
+    if (!user?.id) {
+      this.showErrorPopup('User session expired. Please log in again.');
+      this.isUploading = false;
+      return;
+    }
+    formData.append('user_id', user.id.toString());
 
     try {
-      //implement the actual file upload and processing
-      await this.simulateFileUpload();
-      
-      this.uploadSuccess = true;
+      const response = await fetch('/api/import', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${this.authService.getToken()}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to import data');
+      }
+
+      this.showSuccessPopup(`Successfully imported ${data.insertedRows} rows of data`);
       this.selectedFile = null;
-      
-      // Reset success message after 3 seconds
-      setTimeout(() => {
-        this.uploadSuccess = false;
-      }, 3000);
+      this.uploadProgress = 100;
     } catch (error) {
-      this.uploadError = 'An error occurred while uploading the file';
+      let errorMessage = 'Failed to import data';
+      
+      if (error instanceof Error) {
+        // Handle specific error messages from backend
+        if (error.message.includes('Invalid date format')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('Spreadsheet is empty')) {
+          errorMessage = 'The uploaded file is empty or has invalid data';
+        } else if (error.message.includes('File, kpi_id, and user_id are required')) {
+          errorMessage = 'Missing required information for import';
+        }
+      }
+      
+      this.showErrorPopup(errorMessage);
     } finally {
       this.isUploading = false;
     }
