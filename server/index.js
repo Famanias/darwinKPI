@@ -51,11 +51,15 @@ const initializeApp = async () => {
     const kpiRoutes = require('./routes/kpi');
     const usersRoutes = require('./routes/users');
     const performanceRoutes = require('./routes/performance');
+    const analyticsRoutes = require("./routes/analytics");
+    const logsRoutes = require("./routes/logs");
 
-    app.use('/api/auth', authRoutes);
-    app.use('/api/kpis', kpiRoutes);
-    app.use('/api/users', usersRoutes);
-    app.use('/api/performance-data', performanceRoutes);
+    app.use("/api/auth", authRoutes);
+    app.use("/api/kpis", kpiRoutes);
+    app.use("/api/users", usersRoutes);
+    app.use("/api/performance-data", performanceRoutes);
+    app.use("/api/analytics", analyticsRoutes);
+    app.use("/api/logs", logsRoutes);
 
     // Error handling middleware
     app.use((err, req, res, next) => {
