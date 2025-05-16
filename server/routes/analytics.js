@@ -5,7 +5,6 @@ const authMiddleware = require('../middleware/auth');
 // Get the database connection from index.js
 const { db: dbPromise } = require('../index');
 
-
 //Return All KPI with their performance data as a list
 router.get('/kpi/all', authMiddleware(['Admin', 'Analyst', 'User']), async (req, res) => {
   try {
@@ -34,3 +33,5 @@ router.get('/kpi/all', authMiddleware(['Admin', 'Analyst', 'User']), async (req,
     res.status(500).json({ message: 'Failed to fetch KPI performance data', error: 'Database error' });
   }
 });
+
+module.exports = router;

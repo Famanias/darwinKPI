@@ -42,3 +42,5 @@ router.post('/logs', authMiddleware(['Admin', 'Analyst', 'User']), async (req, r
     res.status(500).json({ message: 'Failed to create log entry', error: 'Database error' });
   }
 });
+
+module.exports = router;
