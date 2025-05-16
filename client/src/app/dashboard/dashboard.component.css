@@ -202,15 +202,14 @@ canvas {
 
 
 .config-modal-chart {
+  padding: 1rem;
   position: fixed;
   top: 50%;
   left: 50%;
   z-index: 102;
   transform: translate(-50%, -50%);
-  width: 560px;
-  height: 315px;
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 900x;
+  height: 500px;
   aspect-ratio: 16 / 9;
   background: #f3f4f6;
   border-radius: 1rem;
@@ -249,10 +248,10 @@ canvas {
 
 .floating-chart-btn {
   position: fixed;
-  bottom: 5.5rem; /* just above the settings button */
+  bottom: 6rem; /* just above the settings button */
   right: 2rem;
   z-index: 100;
-  background: #2563eb;
+  background: #1a202c;
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -265,7 +264,8 @@ canvas {
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
 }
+
 .floating-chart-btn:hover {
-  background: #1a202c;
+  background: #2563eb;
   transform: scale(1.08) rotate(-12deg);
 }
