@@ -1,15 +1,7 @@
-<!-- <div class="app-container" [ngClass]="{'sidebar-collapsed': isSidebarCollapsed}">
-  <app-sidebar (toggleSidebar)="onToggleSidebar($event)"></app-sidebar>
-  <div class="main-content">
-    <router-outlet></router-outlet>
-  </div>
-</div> -->
-
 <nav *ngIf="authService.isLoggedIn()">
   <a routerLink="/kpi-management">KPI Management</a>
   <a routerLink="/user-management">User Management</a>
   <button (click)="authService.logout()">Logout</button>
-  <app-topbar (refreshRequested)="dashboard.manualRefresh()"></app-topbar>
-  <app-dashboard #dashboard></app-dashboard>
+  <topbar></topbar>
 </nav>
 <router-outlet></router-outlet>

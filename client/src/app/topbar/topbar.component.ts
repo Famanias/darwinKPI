@@ -32,8 +32,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
   }
 
   manualRefresh(): void {
-    this.refreshRequested.emit();
-    console.log('Refresh requested from topbar');
+    location.reload();
   }
   
   isLoggedIn(): boolean {
@@ -41,4 +40,3 @@ export class TopbarComponent implements OnInit, OnDestroy {
   }
 
 }
-

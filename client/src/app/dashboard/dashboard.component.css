@@ -1,10 +1,11 @@
 .dashboard-container {
   height: 100%;
   min-height: 50vh;
+  background-color: #f8fafc;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.75rem;
+  gap: 1.5rem;
+  padding: 1.5rem;
 }
 
 .dashboard-header {
@@ -18,11 +19,11 @@
 }
 
 .dashboard-header.sticky {
-  background: #1a202c;
+  background: #1a202c; /* Tailwind's gray-900 */
   color: #fff;
   box-shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
   animation: stickyPop 0.4s cubic-bezier(0.4,0,0.2,1);
-  padding: 0.5rem;
+  padding: 1.03rem;
 }
 
 @keyframes stickyPop {
@@ -37,32 +38,27 @@
 }
 
 .dashboard-header {
-  padding: 0.5rem;
+  padding: 1.03rem;
 }
 
 .attention-banner {
-  padding: 0.5rem;
-}
-
-.dashboard-content {
-  display: flex;
-  gap: 0.75rem;
+  padding: 1rem;
 }
 
 .widgets-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(200px, 1fr));
-  gap: 0.75rem;
+  gap: 1.5rem;
   flex: 1;
 }
 
 .widget {
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
+  padding: 1rem;
   transition: transform 0.2s, box-shadow 0.2s;
   height: 100%;
-  min-height: 300px;
+  min-height: 150px;
 }
 
 .widget:hover {
@@ -73,8 +69,8 @@
 .widget-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-bottom: 0.5rem;
+  gap: 1rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -82,13 +78,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.chart-container {
-  flex: 1;
-  min-height: 200px;
-  position: relative;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .config-panel {
@@ -99,13 +91,13 @@
 .config-list {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .config-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .config-item:hover {
@@ -128,8 +120,8 @@
 
 @media (max-width: 640px) {
   .dashboard-container {
-    padding: 0.5rem;
-    gap: 0.5rem;
+    padding: 1rem;
+    gap: 1rem;
   }
 
   .widgets-grid {
@@ -137,7 +129,7 @@
   }
 
   .widget {
-    min-height: 250px;
+    min-height: 120px;
   }
 }
 

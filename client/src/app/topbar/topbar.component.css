@@ -6,14 +6,17 @@
   align-items: center;
   padding: 0 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
+  width: 100%;
 }
 
 .topbar-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   width: 100%;
   gap: 1rem;

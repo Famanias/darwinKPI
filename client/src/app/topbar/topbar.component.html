@@ -1,7 +1,7 @@
-<div class="topbar">
+<div class="topbar" *ngIf="isLoggedIn()">
   <div class="topbar-content">
-    <button (click)="manualRefresh()" class="refresh-btn">Refresh</button>
     <div class="date-container">
+      <button (click)="manualRefresh()" class="refresh-btn">Refresh</button>
       <span class="date">{{ currentDate | date:'EEEE, MMMM d, y' }}</span>
       <span class="time">{{ currentDate | date:'h:mm a' }}</span>
     </div>
