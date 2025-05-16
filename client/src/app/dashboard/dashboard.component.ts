@@ -80,11 +80,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isSticky = window.scrollY > 30;
   };
 
-  manualRefresh(): void {
-    this.loadKpis();
-    this.loadPerformanceHistory();
-  }
-
   loadKpis(): void {
     this.authService.getKpis().subscribe(
       (data: Kpi[]) => {
