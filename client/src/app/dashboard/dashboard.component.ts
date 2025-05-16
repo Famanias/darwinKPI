@@ -7,9 +7,19 @@ import Chart from 'chart.js/auto';
 interface Kpi {
   id?: number | string;
   name: string;
+  description?: string;
   target?: number;
   frequency?: string;
   unit?: string;
+  visualization?: string;
+}
+
+interface PerformanceData {
+  id: number;
+  kpi_id: number;
+  user_id: number;
+  value: number;
+  date: string;
 }
 
 @Component({
@@ -23,7 +33,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   kpis: Kpi[] = [];
   widgets: Kpi[] = [];
   attentionRequired: string | null = null;
-  performanceHistory: any[] = [];
+  performanceHistory: PerformanceData[] = [];
 
   @ViewChildren('kpiChart') kpiChartRefs!: QueryList<ElementRef>;
   private kpiCharts: Chart[] = [];
@@ -37,9 +47,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Initial chart setup
     this.setupKpiCharts();
-    // Re-run setup when the DOM changes (e.g., when toggling KPIs)
     this.kpiChartRefs.changes.subscribe(() => {
       console.log('kpiChartRefs changed, re-setting up charts');
       this.setupKpiCharts();
@@ -57,7 +65,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           ...kpi,
           target: kpi.target || 100,
           frequency: kpi.frequency || 'Monthly',
-          unit: kpi.unit || 'Number'
+          unit: kpi.unit || 'Number',
+          description: kpi.description || 'Test Description'
         }));
         console.log('Loaded KPIs:', this.kpis);
         this.initializeWidgets();
@@ -72,7 +81,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loadPerformanceHistory(): void {
     this.authService.getPerformanceHistory().subscribe(
-      (data: any[]) => {
+      (data: PerformanceData[]) => {
         this.performanceHistory = data;
         console.log('Loaded Performance History:', this.performanceHistory);
         this.setupKpiCharts();
@@ -92,6 +101,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         .map(kpi => ({
           id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
           name: kpi.name,
+          description: kpi.description,
           target: kpi.target,
           frequency: kpi.frequency,
           unit: kpi.unit
@@ -100,6 +110,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.widgets = this.kpis.map(kpi => ({
         id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
         name: kpi.name,
+        description: kpi.description,
         target: kpi.target,
         frequency: kpi.frequency,
         unit: kpi.unit
@@ -120,6 +131,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.widgets.push({
         id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
         name: kpi.name,
+        description: kpi.description,
         target: kpi.target,
         frequency: kpi.frequency,
         unit: kpi.unit
@@ -152,17 +164,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setupKpiCharts(): void {
-    // Destroy existing charts to prevent memory leaks
     this.kpiCharts.forEach(chart => chart.destroy());
     this.kpiCharts = [];
 
-    // Ensure kpiChartRefs is available
     if (!this.kpiChartRefs || this.kpiChartRefs.length === 0) {
       console.warn('No kpiChartRefs available to render charts');
       return;
     }
 
-    // Ensure widgets and performanceHistory are loaded
     if (!this.widgets.length || !this.performanceHistory.length) {
       console.warn('Widgets or performance history not loaded yet:', {
         widgets: this.widgets,

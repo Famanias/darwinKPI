@@ -8,41 +8,9 @@
   padding: 1.5rem;
 }
 
-.dashboard-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: #fff;
-  transition: background-color 0.4s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s;
-  box-shadow: none;
-  padding: 0 1.5rem;
-}
-
-.dashboard-header.sticky {
-  background: #1a202c; /* Tailwind's gray-900 */
-  color: #fff;
-  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
-  animation: stickyPop 0.4s cubic-bezier(0.4,0,0.2,1);
-  padding: 1.03rem;
-}
-
-@keyframes stickyPop {
-  0% {
-    transform: translateY(-30%);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.dashboard-header {
-  padding: 1.03rem;
-}
-
-.attention-banner {
-  padding: 1rem;
+.dashboard-content {
+  display: flex;
+  gap: 1.5rem;
 }
 
 .widgets-grid {
@@ -58,7 +26,7 @@
   padding: 1rem;
   transition: transform 0.2s, box-shadow 0.2s;
   height: 100%;
-  min-height: 150px;
+  min-height: 300px;
 }
 
 .widget:hover {
@@ -78,9 +46,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  gap: 1rem;
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 200px;
+  position: relative;
 }
 
 .config-panel {
@@ -129,7 +101,7 @@
   }
 
   .widget {
-    min-height: 120px;
+    min-height: 250px;
   }
 }
 
