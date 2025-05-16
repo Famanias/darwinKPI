@@ -9,5 +9,7 @@
   <a routerLink="/kpi-management">KPI Management</a>
   <a routerLink="/user-management">User Management</a>
   <button (click)="authService.logout()">Logout</button>
+  <app-topbar (refreshRequested)="dashboard.manualRefresh()"></app-topbar>
+  <app-dashboard #dashboard></app-dashboard>
 </nav>
 <router-outlet></router-outlet>

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChildren, QueryList, ElementRef, Input } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
@@ -66,7 +66,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startPolling(): void {
-    this.pollingSubscription = interval(5000).subscribe(() => {
+    this.pollingSubscription = interval(30000).subscribe(() => {
       console.log('Polling for updates...');
       this.loadKpis();
       this.loadPerformanceHistory();
@@ -76,7 +76,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   handleScroll = (): void => {
-    this.isSticky = window.scrollY > 30;
+    this.isSticky = window.scrollY > 72;
   };
 
   manualRefresh(): void {
