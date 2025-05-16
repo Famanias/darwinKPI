@@ -1,0 +1,6 @@
+<div class="topbar" *ngIf="isLoggedIn()">
+  <div class="date-container">
+    <span class="date">{{ currentDate | date:'EEEE, MMMM d, y' }}</span>
+    <span class="time">{{ currentDate | date:'h:mm a' }}</span>
+  </div>
+</div> 
