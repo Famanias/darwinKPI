@@ -28,44 +28,45 @@ import { CommonModule } from '@angular/common';
       </main>
     </div>
   `,
-  styles: [`
-    .app-container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .content-wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      margin-left: 250px; /* Same as navbar width */
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 2rem;
-    }
-
-    .auth-container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .auth-content {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 2rem;
-      background-color: #f7fafc;
-    }
-
-    @media (max-width: 768px) {
-      .content-wrapper {
-        margin-left: 0;
+  styles: [
+    `
+      .app-container {
+        display: flex;
+        min-height: 100vh;
       }
-    }
-  `]
+
+      .content-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 250px; /* Same as navbar width */
+      }
+
+      .main-content {
+        flex: 1;
+      }
+
+      .auth-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .auth-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background-color: #f7fafc;
+      }
+
+      @media (max-width: 768px) {
+        .content-wrapper {
+          margin-left: 0;
+        }
+      }
+    `,
+  ],
 })
 export class AppComponent {
   constructor(protected authService: AuthService) {}
