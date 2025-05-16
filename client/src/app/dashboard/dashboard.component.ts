@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChildren, QueryList, ElementRef, ViewChild } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
@@ -37,10 +37,23 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   performanceHistory: PerformanceData[] = [];
   isSticky = false;
   showConfig = false;
+  private _showCombinedChart = false;
+  get showCombinedChart() {
+    return this._showCombinedChart;
+  }
+  set showCombinedChart(val: boolean) {
+    this._showCombinedChart = val;
+    if (val) {
+      setTimeout(() => this.renderCombinedChart(), 0);
+    }
+  }
 
   @ViewChildren('kpiChart') kpiChartRefs!: QueryList<ElementRef>;
   private kpiCharts: Chart[] = [];
   private pollingSubscription!: Subscription;
+
+  @ViewChild('combinedKpiChart') combinedKpiChartRef!: ElementRef;
+  private combinedChart: Chart | undefined;
 
   constructor(private authService: AuthService) {}
 
@@ -50,6 +63,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.renderCombinedChart();
     this.setupKpiCharts();
     this.kpiChartRefs.changes.subscribe(() => {
       console.log('kpiChartRefs changed, re-setting up charts');
@@ -105,8 +119,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.authService.getPerformanceHistory().subscribe(
       (data: PerformanceData[]) => {
         this.performanceHistory = data;
-        console.log('Loaded Performance History:', this.performanceHistory);
-        this.setupKpiCharts();
+        this.renderCombinedChart();
       },
       (error) => {
         console.error('Error fetching performance history:', error);
@@ -278,5 +291,58 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(`Error rendering chart for ${widget.name}:`, error);
       }
     });
+  }
+
+  renderCombinedChart(): void {
+    if (this.combinedChart) {
+      this.combinedChart.destroy();
+    }
+    if (!this.combinedKpiChartRef || !this.performanceHistory.length || !this.kpis.length) return;
+
+    const ctx = this.combinedKpiChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    // Get all unique dates
+    const allDates = Array.from(new Set(this.performanceHistory.map(entry => entry.date)))
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    const labels = allDates.map(date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+
+    // One dataset per KPI
+    const datasets = this.kpis.map(kpi => {
+      const data = allDates.map(date => {
+        const entry = this.performanceHistory.find(e => e.kpi_id === kpi.id && e.date === date);
+        return entry ? entry.value : null;
+      });
+      return {
+        label: kpi.name,
+        data: data,
+        borderColor: this.getRandomColor(),
+        fill: false,
+        tension: 0.4
+      };
+    });
+
+    this.combinedChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'top' } },
+        scales: {
+          x: { title: { display: true, text: 'Time' } },
+          y: { title: { display: true, text: 'Value' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  getRandomColor(): string {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
   }
 }

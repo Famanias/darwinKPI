@@ -18,7 +18,7 @@
           <p><strong>Target:</strong> {{ widget.target }} {{ widget.unit }}</p>
           <p><strong>Frequency:</strong> {{ widget.frequency }}</p>
           <div class="chart-container">
-            <canvas #kpiChart [id]="'kpiChart-' + i"></canvas>
+            <!-- <canvas #kpiChart [id]="'kpiChart-' + i"></canvas> -->
           </div>
         </div>
       </div>
@@ -48,6 +48,28 @@
         <input type="checkbox" [checked]="isKpiSelected(kpi.name)" (change)="toggleKpi(kpi.name)" class="mr-2">
         <span>{{ kpi.name }}</span>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Combined Chart Button -->
+<button class="floating-chart-btn" (click)="showCombinedChart = true" aria-label="Show Combined KPI Chart">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 17v-2a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+</button>
+
+<!-- Combined KPI Performance Chart Modal -->
+<div class="config-modal-backdrop" *ngIf="showCombinedChart" (click)="showCombinedChart = false"></div>
+<div class="config-modal-chart" *ngIf="showCombinedChart">
+  <div (click)="$event.stopPropagation()">
+    <div class="flex justify-between items-center mb-2">
+      <h3 class="text-lg font-semibold">All KPI Performance Overview</h3>
+      <button (click)="showCombinedChart = false" class="close-btn" aria-label="Close">&times;</button>
+    </div>
+    <div style="height: 315px; width: 560px; max-width: 90vw;">
+      <canvas #combinedKpiChart id="combinedKpiChart"></canvas>
     </div>
   </div>
 </div>
