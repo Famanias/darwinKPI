@@ -57,6 +57,7 @@ import { CommonModule } from '@angular/common';
         display: flex;
         justify-content: center;
         align-items: center;
+        padding: 2rem;
         background-color: #f7fafc;
       }
 
