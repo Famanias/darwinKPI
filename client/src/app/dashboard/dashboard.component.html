@@ -29,14 +29,15 @@
           <p><strong>Description:</strong> {{ widget.description }}</p>
           <p><strong>Target:</strong> {{ widget.target }} {{ widget.unit }}</p>
           <p><strong>Frequency:</strong> {{ widget.frequency }}</p>
-          <div>
+          <div class="flex items-center justify-between mt-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Add Value</label>
             <div *ngIf="!widget.inputSaved; else savedValue">
               <input type="number" [(ngModel)]="widget.inputValue"
                 class="border rounded px-2 py-1 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="Enter value" />
               <button (click)="saveInput(widget)"
-                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
+                [disabled]="widget.inputValue === null || widget.inputValue === undefined"
+                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
                 Save
               </button>
             </div>
