@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 export class AdminDashboardComponent {
   logs: any[] = [];
   users: any[] = [];
+  kpi: any[] = [];
   constructor(private authService: AuthService, private router: Router) {}
 
   getUserRole(): string | null {
@@ -42,6 +43,16 @@ export class AdminDashboardComponent {
       },
       error: (err) => {
         console.error('Failed to load users:', err);
+      },
+    });
+
+    this.authService.getKpis().subscribe({
+      next: (response) => {
+        this.kpi = response;
+        console.log('KPI:', this.kpi);
+      },
+      error: (err) => {
+        console.error('Failed to load KPI:', err);
       },
     });
   }
