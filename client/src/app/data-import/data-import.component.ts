@@ -1,7 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../auth.service';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+
+interface ImportResponse {
+  message: string;
+  insertedRows?: number;
+  error?: string;
+  details?: string;
+}
 
 @Component({
   selector: 'app-data-import',
@@ -10,40 +19,46 @@ import { AuthService } from '../auth.service';
   templateUrl: './data-import.component.html',
   styleUrls: ['./data-import.component.css']
 })
-export class DataImportComponent {
+export class DataImportComponent implements OnInit {
   selectedFile: File | null = null;
   isUploading: boolean = false;
   uploadProgress: number = 0;
   uploadSuccess: boolean = false;
   uploadError: string | null = null;
-  // importType: 'existing' | 'new' = 'existing';
   existingKpis: any[] = [];
   selectedKpi: any = null;
-
-  // Add popup message properties
   showPopup: boolean = false;
   popupMessage: string = '';
   popupType: 'success' | 'error' = 'error';
-importType: any;
+  private apiUrl = environment.apiUrl || '';
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private http: HttpClient
+  ) {}
+
+  ngOnInit(): void {
     this.loadExistingKpis();
   }
 
   loadExistingKpis(): void {
-    this.authService.getKpis().subscribe(
-      (data) => {
+    this.authService.getKpis().subscribe({
+      next: (data) => {
         this.existingKpis = data;
+        if (this.existingKpis.length === 0) {
+          this.showErrorPopup('No KPIs available. Please create a KPI first.');
+        }
       },
-      (error) => {
+      error: (error) => {
         console.error('Error fetching KPIs:', error);
-        this.showErrorPopup('Failed to load KPIs');
+        this.showErrorPopup('Failed to load KPIs. Please refresh the page.');
       }
-    );
+    });
   }
 
   selectKpi(kpi: any): void {
     this.selectedKpi = kpi;
+    this.uploadError = null;
   }
 
   showErrorPopup(message: string): void {
@@ -70,11 +85,32 @@ importType: any;
       if (this.isValidFileType(file)) {
         this.selectedFile = file;
         this.uploadError = null;
+        
+        // Preview first few rows if it's a CSV
+        if (file.type === 'text/csv') {
+          this.previewCSV(file);
+        }
       } else {
         this.selectedFile = null;
         this.showErrorPopup('Please select a CSV or Excel file');
       }
     }
+  }
+
+  private previewCSV(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const text = e.target.result;
+      const lines = text.split('\n');
+      if (lines.length > 0) {
+        const headers = lines[0].trim().split(',');
+        if (!headers.includes('date') || !headers.includes('value')) {
+          this.showErrorPopup('CSV file must contain "date" and "value" columns');
+          this.selectedFile = null;
+        }
+      }
+    };
+    reader.readAsText(file);
   }
 
   isValidFileType(file: File): boolean {
@@ -87,8 +123,19 @@ importType: any;
   }
 
   async uploadFile(): Promise<void> {
-    if (!this.selectedFile || !this.selectedKpi) {
-      this.showErrorPopup('Please select both a KPI and a file');
+    if (!this.selectedFile) {
+      this.showErrorPopup('Please select a file to upload');
+      return;
+    }
+
+    if (!this.selectedKpi) {
+      this.showErrorPopup('Please select a KPI for the data');
+      return;
+    }
+
+    const user = this.authService.getUser();
+    if (!user?.id) {
+      this.showErrorPopup('User session expired. Please log in again.');
       return;
     }
 
@@ -97,50 +144,39 @@ importType: any;
 
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-    formData.append('kpi_id', this.selectedKpi.id);
-    
-    // Get the current user's information
-    const user = this.authService.getUser();
-    if (!user?.id) {
-      this.showErrorPopup('User session expired. Please log in again.');
-      this.isUploading = false;
-      return;
-    }
+    formData.append('kpi_id', this.selectedKpi.id.toString());
     formData.append('user_id', user.id.toString());
 
     try {
-      const response = await fetch('/api/import', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Authorization': `Bearer ${this.authService.getToken()}`
-        }
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${this.authService.getToken()}`
       });
 
-      const data = await response.json();
+      const response = await this.http.post<ImportResponse>(
+        `${this.apiUrl}/api/import`,
+        formData,
+        { headers }
+      ).toPromise();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to import data');
+      if (response) {
+        this.showSuccessPopup(response.message);
+        this.selectedFile = null;
+        this.uploadProgress = 100;
+        this.uploadSuccess = true;
+        
+        // Optionally refresh KPI data
+        this.loadExistingKpis();
       }
-
-      this.showSuccessPopup(`Successfully imported ${data.insertedRows} rows of data`);
-      this.selectedFile = null;
-      this.uploadProgress = 100;
     } catch (error) {
-      let errorMessage = 'Failed to import data';
-      
-      if (error instanceof Error) {
-        // Handle specific error messages from backend
-        if (error.message.includes('Invalid date format')) {
-          errorMessage = error.message;
-        } else if (error.message.includes('Spreadsheet is empty')) {
-          errorMessage = 'The uploaded file is empty or has invalid data';
-        } else if (error.message.includes('File, kpi_id, and user_id are required')) {
-          errorMessage = 'Missing required information for import';
-        }
+      this.uploadSuccess = false;
+      if (error instanceof HttpErrorResponse) {
+        const message = error.error?.message || 'Failed to import data';
+        this.showErrorPopup(message);
+        console.error('Import error details:', error.error?.details || error.message);
+      } else {
+        this.showErrorPopup('An unexpected error occurred');
+        console.error('Unexpected error:', error);
       }
-      
-      this.showErrorPopup(errorMessage);
     } finally {
       this.isUploading = false;
     }
@@ -152,7 +188,6 @@ importType: any;
       const interval = setInterval(() => {
         progress += 10;
         this.uploadProgress = progress;
-        
         if (progress >= 100) {
           clearInterval(interval);
           resolve();
