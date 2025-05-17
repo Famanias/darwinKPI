@@ -167,6 +167,14 @@ export class AuthService {
     });
   }
 
+  downloadKpiReportForUser(kpiIds: number[], userId: number) {
+    return this.http.post(`${this.apiUrl}/api/download/report`, { kpiIds, userId }, {
+      headers: this.getAuthHeaders(),
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
   //Logs Methods
   getLogs(): Observable<any> {
     return this.http.get(`${this.apiUrl}/api/logs`, {
@@ -199,6 +207,54 @@ export class AuthService {
       pad(date.getMinutes()) +
       ':' +
       pad(date.getSeconds())
+    );
+  }
+
+  upsertPerformanceData(data: { user_id: number, kpi_id: number, value: number, frequency: string, date?: string }) {
+    const freq = (data.frequency || '').toLowerCase();
+    return this.http.post(`${this.apiUrl}/api/performance-data/upsert`, data, { headers: this.getAuthHeaders() });
+  }
+
+  saveInput(widget: any) {
+    const user = this.getUser();
+    if (!user) {
+      alert('User session expired. Please log in again.');
+      return;
+    }
+    const now = new Date();
+    console.log('Fetching for', { userId: user.id, kpiId: Number(widget.id.replace('kpi-', '')), frequency: widget.frequency, date: now.toISOString() });
+    this.upsertPerformanceData({
+      user_id: user.id,
+      kpi_id: Number(widget.id.replace('kpi-', '')),
+      value: widget.inputValue,
+      frequency: widget.frequency || 'Monthly',
+      date: now.toISOString()
+    }).subscribe(() => {
+      widget.inputSaved = true;
+    });
+  }
+
+  editInput(widget: any) {
+    widget.inputSaved = false;
+  }
+
+  getPerformanceValueForPeriod(userId: number, kpiId: number, frequency: string, date: string) {
+    const freq = (frequency || '').toLowerCase();
+
+    return this.http.get<any>(
+      `${this.apiUrl}/api/performance-data/value`,
+      {
+        params: { userId, kpiId, frequency, date },
+        headers: this.getAuthHeaders()
+      }
+    ).pipe(
+      tap((data) => {
+        console.log('Backend returned:', data);
+        console.log('userId:', userId, typeof userId);
+        console.log('kpiId:', kpiId, typeof kpiId);
+        console.log('frequency:', frequency);
+        console.log('date:', date);
+      })
     );
   }
 }

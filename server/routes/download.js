@@ -93,9 +93,10 @@ router.get(
         return res.status(404).json({ message: "No KPIs found" });
       }
       const kpiIds = kpis.map((kpi) => kpi.id);
+      const placeholders = kpiIds.map(() => '?').join(',');
       const [performanceData] = await db.execute(
-        "SELECT * FROM performance_data WHERE kpi_id IN (?) ORDER BY date ASC",
-        [kpiIds]
+        `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) ORDER BY date ASC`,
+        kpiIds
       );
 
       const doc = new PDFDocument({ margin: 50, bufferPages: true });
@@ -171,23 +172,31 @@ router.post(
   "/report",
   authMiddleware(["Admin", "User", "Analyst"]),
   async (req, res) => {
-    const { kpiIds } = req.body;
+    const { kpiIds, userId } = req.body;
+
     if (!kpiIds || !Array.isArray(kpiIds) || kpiIds.length === 0) {
       return res
         .status(400)
         .json({ message: "kpiIds must be a non-empty array" });
     }
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+
     try {
       const db = req.app.locals.db;
-      const [kpis] = await db.execute("SELECT * FROM kpis WHERE id IN (?)", [
-        kpiIds,
-      ]);
+
+      // Get KPIs
+      const [kpis] = await db.execute("SELECT * FROM kpis WHERE id IN (" + kpiIds.map(() => '?').join(',') + ")", kpiIds);
       if (!kpis.length) {
         return res.status(404).json({ message: "No KPIs found" });
       }
+
+      // Get performance data for the KPIs and user
+      const placeholders = kpiIds.map(() => '?').join(',');
       const [performanceData] = await db.execute(
-        "SELECT * FROM performance_data WHERE kpi_id IN (?) ORDER BY date ASC",
-        [kpiIds]
+        `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) AND user_id = ? ORDER BY date ASC`,
+        [...kpiIds, userId]
       );
 
       const doc = new PDFDocument({ margin: 50, bufferPages: true });
