@@ -3,6 +3,8 @@ import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
 import { interval, Subscription } from 'rxjs';
+import { TopbarComponent } from "../topbar/topbar.component";
+import { FormsModule } from '@angular/forms';
 
 // Define the Kpi interface
 interface Kpi {
@@ -13,6 +15,8 @@ interface Kpi {
   frequency?: string;
   unit?: string;
   visualization?: string;
+  inputValue?: number;
+  inputSaved?: boolean;
 }
 
 interface PerformanceData {
@@ -28,7 +32,7 @@ interface PerformanceData {
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, TopbarComponent, FormsModule]
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   kpis: Kpi[] = [];
@@ -55,7 +59,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('combinedKpiChart') combinedKpiChartRef!: ElementRef;
   private combinedChart: Chart | undefined;
 
-  constructor(private authService: AuthService) {}
+
+  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     this.startPolling();
@@ -81,7 +86,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startPolling(): void {
-    this.pollingSubscription = interval(60000).subscribe(() => {
+    this.pollingSubscription = interval(5000).subscribe(() => {
       console.log('Polling for updates...');
       this.loadKpis();
       this.loadPerformanceHistory();
@@ -90,9 +95,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadPerformanceHistory();
   }
 
+  saveKpiInput(widget: any) {
+    if (widget.inputValue && widget.inputValue.trim() !== '') {
+      widget.savedKpi = widget.inputValue;
+    }
+  }
+
+  editKpiInput(widget: any) {
+    widget.savedKpi = undefined;
+  }
+
   handleScroll = (): void => {
     this.isSticky = window.scrollY > 30;
   };
+
+  manualRefresh(): void {
+    this.loadKpis();
+    this.loadPerformanceHistory();
+  }
 
   loadKpis(): void {
     this.authService.getKpis().subscribe(
@@ -175,6 +195,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.saveWidgetState();
     this.setupKpiCharts();
+  }
+
+  // Save input value for a widget
+  saveInput(widget: any) {
+    widget.inputSaved = true;
+  }
+
+  // Edit input value for a widget
+  editInput(widget: any) {
+    widget.inputSaved = false;
   }
 
   loadWidgetState(): void {
@@ -345,4 +375,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     return color;
   }
+
+
 }
