@@ -2,28 +2,40 @@ const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 
-//Return All KPI with their performance data as a list
 router.get(
   "/kpi/all",
   authMiddleware(["Admin", "Analyst", "User"]),
   async (req, res) => {
     try {
       const db = req.app.locals.db;
-      const [rows] = await db.execute("SELECT * FROM performance_data");
 
-      const [kpiRows] = await db.execute("SELECT * FROM kpi");
-      const kpiData = rows.map((row) => {
-        const kpi = kpiRows.find((k) => k.id === row.kpi_id);
+      // Get all KPIs
+      const [kpis] = await db.execute("SELECT * FROM kpis");
+
+      // Get all performance data
+      const [performanceData] = await db.execute(
+        "SELECT * FROM performance_data"
+      );
+
+      // Group performance data under each KPI
+      const result = kpis.map((kpi) => {
+        const kpiPerformances = performanceData.filter(
+          (pd) => pd.kpi_id === kpi.id
+        );
+
         return {
-          ...row,
-          kpi_name: kpi ? kpi.name : null,
-          kpi_description: kpi ? kpi.description : null,
-          kpi_unit: kpi ? kpi.unit : null,
-          kpi_target: kpi ? kpi.target : null,
-          kpi_visualization: kpi ? kpi.visualization : null,
+          id: kpi.id,
+          name: kpi.name,
+          description: kpi.description,
+          unit: kpi.unit,
+          target: kpi.target,
+          visualization: kpi.visualization,
+          frequency: kpi.frequency,
+          data: kpiPerformances, // performance data rows for this KPI
         };
       });
-      res.status(200).json(kpiData);
+
+      res.status(200).json(result);
     } catch (err) {
       console.error(
         "Error fetching KPI performance data:",
