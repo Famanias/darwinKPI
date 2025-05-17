@@ -42,11 +42,13 @@
               </button>
             </div>
             <ng-template #savedValue>
-              <span class="text-lg font-semibold mr-3">{{ widget.inputValue }}</span>
-              <button (click)="editInput(widget)"
-                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                Edit
-              </button>
+              <div class="flex items-center">
+                <span class="text-lg font-semibold mr-3">{{ widget.inputValue }} {{ widget.unit }}</span>
+                <button (click)="editInput(widget)"
+                  class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
+                  Edit
+                </button>
+              </div>
             </ng-template>
           </div>
 

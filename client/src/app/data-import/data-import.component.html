@@ -1,145 +1,145 @@
 <div class="data-import-container">
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Data Import</h1>
-    
-    <!-- Popup Message -->
-    @if (showPopup) {
-      <div class="fixed top-4 right-4 max-w-md z-50 animate-popup">
-        <div class="rounded-lg shadow-lg p-4" 
-             [class]="popupType === 'success' ? 'bg-green-100' : 'bg-red-100'">
-          <div class="flex items-center">
-            <!-- Success Icon -->
-            @if (popupType === 'success') {
-              <svg class="w-5 h-5 mr-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-              </svg>
-            }
-            <!-- Error Icon -->
-            @if (popupType === 'error') {
-              <svg class="w-5 h-5 mr-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-              </svg>
-            }
-            <p [class]="popupType === 'success' ? 'text-green-800' : 'text-red-800'">
-              {{ popupMessage }}
-            </p>
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- Import Type Selection
-    <div class="mb-8">
-      <h2 class="text-lg font-semibold mb-4">Select Import Type</h2>
-      <div class="flex space-x-4">
-        <button 
-          [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'existing' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
-          (click)="importType = 'existing'">
-          Import to Existing KPI
-        </button>
-        <button 
-          [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'new' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
-          (click)="importType = 'new'">
-          Import New KPI
-        </button>
-      </div>
-    </div> -->
-
-    <!-- Existing KPI Selection -->
-    <!-- @if (importType === 'existing') { -->
-      <div class="mb-8">
-        <h2 class="text-lg font-semibold mb-4">Select Target KPI</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          @for (kpi of existingKpis; track kpi.id) {
-            <div 
-              class="p-4 border rounded-lg cursor-pointer transition duration-200"
-              [class.border-blue-500]="selectedKpi?.id === kpi.id"
-              [class.bg-blue-50]="selectedKpi?.id === kpi.id"
-              (click)="selectKpi(kpi)">
-              <h3 class="font-medium">{{ kpi.name }}</h3>
-              <p class="text-sm text-gray-600">{{ kpi.description || 'No description' }}</p>
-              <div class="mt-2 text-sm">
-                <span class="text-gray-500">Unit: </span>
-                <span class="text-gray-700">{{ kpi.unit }}</span>
-              </div>
-            </div>
+  <h1 class="text-2xl font-bold mb-6 text-gray-800">Data Import</h1>
+  
+  <!-- Popup Message -->
+  @if (showPopup) {
+    <div class="fixed top-4 right-4 max-w-md z-50 animate-popup">
+      <div class="rounded-lg shadow-lg p-4" 
+           [class]="popupType === 'success' ? 'bg-green-100' : 'bg-red-100'">
+        <div class="flex items-center">
+          <!-- Success Icon -->
+          @if (popupType === 'success') {
+            <svg class="w-5 h-5 mr-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
           }
-        </div>
-      </div>
-    <!-- } -->
-    
-    <!-- File Upload Section -->
-    <div class="upload-section">
-      <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-        <div class="mb-4">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-        </div>
-        
-        <div class="mb-4">
-          <h3 class="text-lg font-medium text-gray-900">Upload your data file</h3>
-          <p class="mt-1 text-sm text-gray-500">
-            @if (importType === 'existing') {
-              Upload data for {{ selectedKpi?.name || 'the selected KPI' }} (CSV or Excel)
-            } @else {
-              Upload new KPI definition and data (CSV or Excel)
-            }
+          <!-- Error Icon -->
+          @if (popupType === 'error') {
+            <svg class="w-5 h-5 mr-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+          }
+          <p [class]="popupType === 'success' ? 'text-green-800' : 'text-red-800'">
+            {{ popupMessage }}
           </p>
-          @if (importType === 'existing' && !selectedKpi) {
-            <p class="mt-2 text-sm text-orange-500">Please select a KPI first</p>
-          }
         </div>
+      </div>
+    </div>
+  }
 
-        <div class="flex justify-center">
-          <label class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
-            <span>Select File</span>
-            <input type="file" class="hidden" (change)="onFileSelected($event)" accept=".csv,.xls,.xlsx">
-          </label>
-        </div>
+  <!-- Import Type Selection
+  <div class="mb-8">
+    <h2 class="text-lg font-semibold mb-4">Select Import Type</h2>
+    <div class="flex space-x-4">
+      <button 
+        [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'existing' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
+        (click)="importType = 'existing'">
+        Import to Existing KPI
+      </button>
+      <button 
+        [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'new' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
+        (click)="importType = 'new'">
+        Import New KPI
+      </button>
+    </div>
+  </div> -->
 
-        @if (selectedFile) {
-          <div class="mt-4 text-sm text-gray-600">
-            Selected file: {{ selectedFile.name }}
+  <!-- Existing KPI Selection -->
+  <!-- @if (importType === 'existing') { -->
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold mb-4">Select Target KPI</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (kpi of existingKpis; track kpi.id) {
+          <div 
+            class="p-4 border rounded-lg cursor-pointer transition duration-200"
+            [class.border-blue-500]="selectedKpi?.id === kpi.id"
+            [class.bg-blue-50]="selectedKpi?.id === kpi.id"
+            (click)="selectKpi(kpi)">
+            <h3 class="font-medium">{{ kpi.name }}</h3>
+            <p class="text-sm text-gray-600">{{ kpi.description || 'No description' }}</p>
+            <div class="mt-2 text-sm">
+              <span class="text-gray-500">Unit: </span>
+              <span class="text-gray-700">{{ kpi.unit }}</span>
+            </div>
           </div>
         }
       </div>
     </div>
-
-    <!-- Upload Progress -->
-    @if (isUploading) {
-      <div class="progress-section mt-8">
-        <div class="bg-gray-200 rounded-full h-2 mb-2">
-          <div class="bg-blue-500 h-2 rounded-full transition-all duration-200"
-               [style.width.%]="uploadProgress"></div>
-        </div>
-        <p class="text-sm text-gray-600 text-center">Uploading... {{ uploadProgress }}%</p>
-      </div>
-    }
-
-    <!-- Upload Button -->
-    <div class="button-section mt-8">
-      <button (click)="uploadFile()"
-              [disabled]="!selectedFile || isUploading || (importType === 'existing' && !selectedKpi)"
-              class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200">
-        Upload Data
-      </button>
-    </div>
+  <!-- } -->
   
+  <!-- File Upload Section -->
+  <div class="upload-section">
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+      <div class="mb-4">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      </div>
+      
+      <div class="mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Upload your data file</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          @if (importType === 'existing') {
+            Upload data for {{ selectedKpi?.name || 'the selected KPI' }} (CSV or Excel)
+          } @else {
+            Upload new KPI definition and data (CSV or Excel)
+          }
+        </p>
+        @if (importType === 'existing' && !selectedKpi) {
+          <p class="mt-2 text-sm text-orange-500">Please select a KPI first</p>
+        }
+      </div>
+
+      <div class="flex justify-center">
+        <label class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+          <span>Select File</span>
+          <input type="file" class="hidden" (change)="onFileSelected($event)" accept=".csv,.xls,.xlsx">
+        </label>
+      </div>
+
+      @if (selectedFile) {
+        <div class="mt-4 text-sm text-gray-600">
+          Selected file: {{ selectedFile.name }}
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Upload Progress -->
+  @if (isUploading) {
+    <div class="progress-section mt-8">
+      <div class="bg-gray-200 rounded-full h-2 mb-2">
+        <div class="bg-blue-500 h-2 rounded-full transition-all duration-200"
+             [style.width.%]="uploadProgress"></div>
+      </div>
+      <p class="text-sm text-gray-600 text-center">Uploading... {{ uploadProgress }}%</p>
+    </div>
+  }
+
+  <!-- Upload Button -->
+  <div class="button-section mt-8">
+    <button (click)="uploadFile()"
+            [disabled]="!selectedFile || isUploading || (importType === 'existing' && !selectedKpi)"
+            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200">
+      Upload Data
+    </button>
+  </div>
+
 </div>
 
 <style>
 .animate-popup {
-  animation: popup 0.3s ease-out;
+animation: popup 0.3s ease-out;
 }
 
 @keyframes popup {
-  0% {
-    opacity: 0;
-    transform: translateY(-1rem);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+0% {
+  opacity: 0;
+  transform: translateY(-1rem);
+}
+100% {
+  opacity: 1;
+  transform: translateY(0);
+}
 }
 </style> 

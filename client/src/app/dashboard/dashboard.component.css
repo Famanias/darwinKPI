@@ -274,7 +274,7 @@ canvas {
   bottom: 10rem;
   right: 2rem;
   z-index: 100;
-  background: #2563eb;
+  background: #1a202c;
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -288,6 +288,6 @@ canvas {
   transition: background 0.2s, transform 0.2s;
 }
 .floating-download-btn:hover {
-  background: #1a202c;
+  background: #2563eb;
   transform: scale(1.08) rotate(-12deg);
 }

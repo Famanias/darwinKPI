@@ -20,6 +20,7 @@ interface ImportResponse {
   styleUrls: ['./data-import.component.css']
 })
 export class DataImportComponent implements OnInit {
+  importType: string = 'existing';
   selectedFile: File | null = null;
   isUploading: boolean = false;
   uploadProgress: number = 0;

@@ -65,6 +65,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.startPolling();
     this.loadWidgetState();
+    this.loadKpis();
   }
 
   ngAfterViewInit(): void {
@@ -86,7 +87,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startPolling(): void {
-    this.pollingSubscription = interval(5000).subscribe(() => {
+    this.pollingSubscription = interval(60000).subscribe(() => {
       console.log('Polling for updates...');
       this.loadKpis();
       this.loadPerformanceHistory();
@@ -115,8 +116,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadKpis(): void {
-    this.authService.getKpis().subscribe(
-      (data: Kpi[]) => {
+    this.authService.getKpis().subscribe({
+      next: (data: Kpi[]) => {
         this.kpis = data.map(kpi => ({
           ...kpi,
           target: kpi.target || 100,
@@ -128,11 +129,49 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.initializeWidgets();
         this.checkPendingUpdates();
         this.setupKpiCharts();
+        // After initializing widgets, fetch their performance data
+        this.fetchWidgetPerformanceData();
       },
-      (error) => {
+      error: (error) => {
         console.error('Error fetching KPIs:', error);
       }
-    );
+    });
+  }
+
+  fetchWidgetPerformanceData(): void {
+    const user = this.authService.getUser();
+    if (!user) return;
+
+    const now = new Date();
+    this.widgets.forEach(widget => {
+      if (widget.id) {
+        const kpiId = typeof widget.id === 'string' ? widget.id.replace('kpi-', '') : widget.id;
+        const now = new Date();
+        this.authService.getPerformanceValueForPeriod(
+          user.id,
+          Number(kpiId),
+          widget.frequency?.toLowerCase() || 'daily',
+          now.toISOString()
+        ).subscribe({
+          next: (data) => {
+            if (data && data.value !== null && data.value !== undefined) {
+              widget.inputValue = Number(data.value);
+              widget.inputSaved = true;
+              console.log(`Loaded performance data for ${widget.name}:`, data);
+            } else {
+              widget.inputValue = undefined;
+              widget.inputSaved = false;
+              console.log(`No performance data found for ${widget.name}`);
+            }
+          },
+          error: (error) => {
+            console.error(`Error fetching performance value for ${widget.name}:`, error);
+            widget.inputValue = undefined;
+            widget.inputSaved = false;
+          }
+        });
+      }
+    });
   }
 
   loadPerformanceHistory(): void {
@@ -149,18 +188,25 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   initializeWidgets(): void {
     const savedState = localStorage.getItem('dashboardWidgets');
+    const previousWidgets = this.widgets; // Save previous state
+
     if (savedState) {
       const savedWidgets: Kpi[] = JSON.parse(savedState);
       this.widgets = this.kpis
         .filter(kpi => savedWidgets.some(w => w.name === kpi.name))
-        .map(kpi => ({
-          id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
-          name: kpi.name,
-          description: kpi.description,
-          target: kpi.target,
-          frequency: kpi.frequency,
-          unit: kpi.unit
-        }));
+        .map(kpi => {
+          const prev = previousWidgets.find(w => w.name === kpi.name);
+          return {
+            id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
+            name: kpi.name,
+            description: kpi.description,
+            target: kpi.target,
+            frequency: kpi.frequency,
+            unit: kpi.unit,
+            inputValue: prev?.inputValue,
+            inputSaved: prev?.inputSaved
+          };
+        });
     } else {
       this.widgets = this.kpis.map(kpi => ({
         id: `kpi-${kpi.id || Math.random().toString(36).substr(2, 9)}`,
@@ -168,7 +214,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         description: kpi.description,
         target: kpi.target,
         frequency: kpi.frequency,
-        unit: kpi.unit
+        unit: kpi.unit,
+        inputValue: undefined,
+        inputSaved: false
       }));
     }
     this.saveWidgetState();
@@ -199,7 +247,31 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Save input value for a widget
   saveInput(widget: any) {
-    widget.inputSaved = true;
+    const user = this.authService.getUser();
+    if (!user) {
+      alert('User session expired. Please log in again.');
+      return;
+    }
+    const now = new Date();
+    this.authService.upsertPerformanceData({
+      user_id: user.id,
+      kpi_id: Number(widget.id && typeof widget.id === 'string' ? widget.id.replace('kpi-', '') : widget.id),
+      value: widget.inputValue,
+      frequency: widget.frequency?.toLowerCase() || 'daily',
+      date: now.toISOString()
+    }).subscribe({
+      next: () => {
+        widget.inputSaved = true;
+        // Refresh performance data after save
+        this.loadPerformanceHistory();
+        // Show success message
+        alert('Value saved successfully!');
+      },
+      error: (error) => {
+        console.error('Error saving value:', error);
+        alert('Failed to save value. Please try again.');
+      }
+    });
   }
 
   // Edit input value for a widget
