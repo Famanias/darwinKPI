@@ -345,4 +345,32 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     return color;
   }
+
+  downloadMyKpiReport() {
+    const user = this.authService.getUser();
+    if (!user?.id) {
+      alert('User session expired. Please log in again.');
+      return;
+    }
+    // Get the filtered KPI IDs from the widgets array
+    const kpiIds = this.widgets
+      .map(w => w.id && typeof w.id === 'string' && w.id.startsWith('kpi-') ? Number(w.id.replace('kpi-', '')) : w.id)
+      .filter((id): id is number => typeof id === 'number');
+
+    this.authService.downloadKpiReportForUser(kpiIds, user.id).subscribe(
+      (response) => {
+        const blob = new Blob([response.body!], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'my_kpi_report.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      (error) => {
+        console.error('Download failed', error);
+        alert('Failed to download report.');
+      }
+    );
+  }
 }

@@ -167,6 +167,14 @@ export class AuthService {
     });
   }
 
+  downloadKpiReportForUser(kpiIds: number[], userId: number) {
+    return this.http.post(`${this.apiUrl}/api/download/report`, { kpiIds, userId }, {
+      headers: this.getAuthHeaders(),
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
   //Logs Methods
   getLogs(): Observable<any> {
     return this.http.get(`${this.apiUrl}/api/logs`, {

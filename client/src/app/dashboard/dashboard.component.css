@@ -248,7 +248,7 @@ canvas {
 
 .floating-chart-btn {
   position: fixed;
-  bottom: 6rem; /* just above the settings button */
+  bottom: 6rem;
   right: 2rem;
   z-index: 100;
   background: #1a202c;
@@ -267,5 +267,28 @@ canvas {
 
 .floating-chart-btn:hover {
   background: #2563eb;
+  transform: scale(1.08) rotate(-12deg);
+}
+
+.floating-download-btn {
+  position: fixed;
+  bottom: 10rem;
+  right: 2rem;
+  z-index: 100;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.floating-download-btn:hover {
+  background: #1a202c;
   transform: scale(1.08) rotate(-12deg);
 }
