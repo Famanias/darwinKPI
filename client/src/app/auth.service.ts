@@ -160,6 +160,13 @@ export class AuthService {
     });
   }
 
+  //Analytics Methods
+  getAnalytics(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/api/analytics/kpi/all`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
   //Logs Methods
   getLogs(): Observable<any> {
     return this.http.get(`${this.apiUrl}/api/logs`, {

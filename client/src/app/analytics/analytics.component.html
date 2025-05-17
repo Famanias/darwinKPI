@@ -1,7 +1,26 @@
-<div class="flex min-h-screen flex-col items-center justify-center py-12">
-    <div class="container flex flex-col items-center justify-center">
-      <h1 class="text-2xl font-semibold tracking-tight">Analytics Dashboard</h1>
-      <p class="text-sm text-gray-500">Welcome, {{ getUserRole() }}! This is the Analytics Dashboard.</p>
-      <button (click)="logout()" class="mt-4 bg-black text-white rounded px-4 py-2 hover:bg-gray-800 cursor-pointer">Logout</button>
+<div class="p-6">
+  <h1 class="text-2xl font-bold mb-2">Analytics</h1>
+  <p class="text-gray-600 mb-4">Check your performance metrics</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let kpi of kpis" class="p-4 bg-white rounded-2xl shadow">
+      <h2 class="text-xl font-semibold text-blue-700">{{ kpi.name }}</h2>
+      <p class="text-gray-600 text-sm mb-2">{{ kpi.description }}</p>
+
+      <div class="text-sm text-gray-500 mb-1">
+        <strong>Unit:</strong> {{ kpi.unit }} |
+        <strong>Target:</strong> {{ kpi.target }} |
+        <strong>Frequency:</strong> {{ kpi.frequency }}
+      </div>
+
+      <div class="mt-4 h-64">
+        <canvas
+          baseChart
+          [data]="kpi.chartData"
+          [type]="kpi.chartType!"
+          [options]="kpi.chartOptions">
+        </canvas>
+      </div>
     </div>
+  </div>
 </div>
