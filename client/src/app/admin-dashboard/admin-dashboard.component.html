@@ -1,7 +1,43 @@
-<div class="flex min-h-screen flex-col items-center justify-center py-12">
-    <div class="container flex flex-col items-center justify-center">
-      <h1 class="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
-      <p class="text-sm text-gray-500">Welcome, {{ getUserRole() }}! This is the Admin Dashboard.</p>
-      <button (click)="logout()" class="mt-4 bg-black text-white rounded px-4 py-2 hover:bg-gray-800 cursor-pointer">Logout</button>
+<div class="p-6">
+  <h1 class="text-2xl font-bold mb-2">Admin Dashboard</h1>
+  <p class="text-gray-600 mb-4">Overview of the System</p>
+  <div class="flex gap-5 h-[70vh]">
+    <div class="border rounded p-2 flex gap-5 flex-col w-[30%]">
+      <h1 class="font-bold text-xl">Summary</h1>
+      <div class="bg-gray-200 p-4 rounded">
+        <h2 class="font-bold">Number of KPIs</h2>
+        <p>21</p>
+      </div>
+      <div class="bg-gray-200 p-4 rounded">
+        <h2 class="font-bold">Actions Logged</h2>
+        <p>21</p>
+      </div>
+      <div class="bg-gray-200 p-4 rounded">
+        <h2 class="font-bold">Number of Users</h2>
+        <p>21</p>
+      </div>
     </div>
+    <div class="w-[70%] flex flex-col">
+      <h2 class="text-xl font-semibold mb-2">KPIs Overview</h2>
+      <h2 class="text-xl font-semibold mb-2">Recent Actions</h2>
+      <table class="flex-1  overflow-y-auto min-w-full bg-white border border-gray-300">
+        <thead>
+          <tr>
+            <th class="border px-4 py-2">Action</th>
+            <th class="border px-4 py-2">User</th>
+            <th class="border px-4 py-2">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of logs">
+            <td class="border px-4 py-2">{{ log.action }}</td>
+            <td class="border px-4 py-2">{{ getUsernameById(log.user_id) }}</td>
+            <td class="border px-4 py-2">
+              {{ convertDateWithTime(log.timestamp) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
