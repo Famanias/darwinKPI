@@ -1,3 +1,15 @@
+<!-- <div class="dashboard-header flex justify-between items-center transition-all duration-300" [class.sticky]="isSticky"
+  [class.bg-gray-900]="isSticky" [class.text-white]="isSticky">
+  <h2 class="text-2xl font-bold">My Dashboard</h2>
+  <button (click)="manualRefresh()" class="bg-blue-500 px-5 py-2 rounded-lg text-white flex items-center justify-center"
+    aria-label="Refresh">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M4 4v5h.582M20 20v-5h-.581M5.5 19A9 9 0 1 0 6 6.5l1.42 1.42" />
+    </svg>
+  </button>
+</div> -->
+
 <div class="dashboard-container">
   <!-- Attention Required -->
   <!-- <div class="bg-yellow-100 p-4 rounded mb-4" *ngIf="attentionRequired">
@@ -17,6 +29,27 @@
           <p><strong>Description:</strong> {{ widget.description }}</p>
           <p><strong>Target:</strong> {{ widget.target }} {{ widget.unit }}</p>
           <p><strong>Frequency:</strong> {{ widget.frequency }}</p>
+          <div class="flex items-center justify-between mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Add Value</label>
+            <div *ngIf="!widget.inputSaved; else savedValue">
+              <input type="number" [(ngModel)]="widget.inputValue"
+                class="border rounded px-2 py-1 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Enter value" />
+              <button (click)="saveInput(widget)"
+                [disabled]="widget.inputValue === null || widget.inputValue === undefined"
+                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                Save
+              </button>
+            </div>
+            <ng-template #savedValue>
+              <span class="text-lg font-semibold mr-3">{{ widget.inputValue }}</span>
+              <button (click)="editInput(widget)"
+                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
+                Edit
+              </button>
+            </ng-template>
+          </div>
+
           <div class="chart-container">
             <!-- <canvas #kpiChart [id]="'kpiChart-' + i"></canvas> -->
           </div>
@@ -57,7 +90,8 @@
   <!-- Floating Combined Chart Button -->
   <button class="floating-chart-btn" (click)="showCombinedChart = true" aria-label="Show Combined KPI Chart">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 17v-2a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 17v-2a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
   </button>
