@@ -9,32 +9,100 @@ function formatDate(date) {
   return d.toLocaleDateString() + " " + d.toLocaleTimeString();
 }
 
+// Helper to add a header to each page
+function addHeader(doc, title = "KPI Report") {
+  // If you have a logo, you can use: doc.image('path/to/logo.png', 50, 45, {width: 50});
+  doc
+    .fontSize(18)
+    .fillColor("#1a237e")
+    .font("Helvetica-Bold")
+    .text("DarwinKPI", 50, 40, { align: "left" });
+  doc
+    .fontSize(10)
+    .fillColor("gray")
+    .font("Helvetica")
+    .text(new Date().toLocaleString(), 400, 50, { align: "right" });
+  doc
+    .moveTo(50, 70)
+    .lineTo(545, 70)
+    .strokeColor("#1a237e")
+    .lineWidth(1)
+    .stroke();
+  doc.moveDown(2);
+  doc
+    .fontSize(16)
+    .fillColor("#0d47a1")
+    .font("Helvetica-Bold")
+    .text(title, 50, doc.y, { align: "left", underline: true });
+  doc.moveDown();
+}
+
+
+// Helper to add a footer with page numbers
+function addFooter(doc) {
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(i);
+    doc
+      .fontSize(10)
+      .fillColor("gray")
+      .text(`Page ${i + 1} of ${range.count}`, 0, 770, { align: "center" });
+  }
+}
+
+
+// Helper to render performance data as a table
+function renderPerformanceTable(doc, data) {
+  const tableTop = doc.y + 10;
+  const itemHeight = 22;
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .fillColor("#1565c0")
+    .text("Date", 60, tableTop)
+    .text("Value", 300, tableTop);
+  doc
+    .moveTo(50, tableTop + 18)
+    .lineTo(545, tableTop + 18)
+    .strokeColor("#1565c0")
+    .lineWidth(0.5)
+    .stroke();
+
+  doc.font("Helvetica").fontSize(12).fillColor("black");
+  let y = tableTop + 25;
+  data.forEach((row) => {
+    doc.text(formatDate(row.date), 60, y).text(row.value, 300, y);
+    y += itemHeight;
+    if (y > 700) {
+      doc.addPage();
+      addHeader(doc);
+      y = doc.y + 10;
+    }
+  });
+  doc.moveDown();
+}
+
 router.get(
   "/report/all",
   authMiddleware(["Admin", "User", "Analyst"]),
   async (req, res) => {
     try {
       const db = req.app.locals.db;
-
-      // Get KPIs
       const [kpis] = await db.execute("SELECT * FROM kpis");
       if (!kpis.length) {
         return res.status(404).json({ message: "No KPIs found" });
       }
-
-      // Get performance data for all KPIs
       const kpiIds = kpis.map((kpi) => kpi.id);
       const [performanceData] = await db.execute(
         "SELECT * FROM performance_data WHERE kpi_id IN (?) ORDER BY date ASC",
         [kpiIds]
       );
-      console.log("Performance data:", performanceData);
 
-      // Create PDF document
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 50, bufferPages: true });
       let buffers = [];
       doc.on("data", buffers.push.bind(buffers));
       doc.on("end", () => {
+        addFooter(doc);
         const pdfData = Buffer.concat(buffers);
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
@@ -44,29 +112,42 @@ router.get(
         res.send(pdfData);
       });
 
-      // Generate content
       for (const kpi of kpis) {
+        addHeader(doc, `KPI: ${kpi.name}`);
         doc
-          .fontSize(22)
-          .fillColor("blue")
-          .text(`KPI Report: ${kpi.name}`, { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(14).fillColor("black");
-        doc.text(`Description: ${kpi.description}`);
-        doc.text(`Target: ${kpi.target}`);
-        doc.text(`Unit: ${kpi.unit}`);
-        doc.text(`Frequency: ${kpi.frequency}`);
+          .moveDown(0.5)
+          .fontSize(13)
+          .fillColor("black")
+          .font("Helvetica-Bold")
+          .text("Description:", 50, doc.y, { continued: true, align: "left" })
+          .font("Helvetica")
+          .text(` ${kpi.description}`, { align: "left" });
+
+        doc
+          .font("Helvetica-Bold")
+          .text("Target:", 50, doc.y, { continued: true, align: "left" })
+          .font("Helvetica")
+          .text(` ${kpi.target} ${kpi.unit}`, { align: "left" });
+
+        doc
+          .font("Helvetica-Bold")
+          .text("Frequency:", 50, doc.y, { continued: true, align: "left" })
+          .font("Helvetica")
+          .text(` ${kpi.frequency}`, { align: "left" });
+
         doc.moveDown();
 
-        doc.fontSize(18).text("Performance Data", { underline: true });
+        doc
+          .fontSize(14)
+          .fillColor("#0d47a1")
+          .font("Helvetica-Bold")
+          .text("Performance Data", 50, doc.y, { align: "left", underline: true });
         const kpiData = performanceData.filter((pd) => pd.kpi_id === kpi.id);
 
         if (kpiData.length === 0) {
-          doc.text("No performance data available.");
+          doc.font("Helvetica").fontSize(12).fillColor("gray").text("No performance data available.");
         } else {
-          kpiData.forEach((row) => {
-            doc.text(`Date: ${formatDate(row.date)} | Value: ${row.value}`);
-          });
+          renderPerformanceTable(doc, kpiData);
         }
 
         if (kpi !== kpis[kpis.length - 1]) {
@@ -84,41 +165,36 @@ router.get(
   }
 );
 
-//Get report for a list of KPIs
+// --- Repeat for the other two endpoints ---
+
 router.post(
   "/report",
   authMiddleware(["Admin", "User", "Analyst"]),
   async (req, res) => {
     const { kpiIds } = req.body;
-
     if (!kpiIds || !Array.isArray(kpiIds) || kpiIds.length === 0) {
       return res
         .status(400)
         .json({ message: "kpiIds must be a non-empty array" });
     }
-
     try {
       const db = req.app.locals.db;
-
-      // Get KPIs
       const [kpis] = await db.execute("SELECT * FROM kpis WHERE id IN (?)", [
         kpiIds,
       ]);
       if (!kpis.length) {
         return res.status(404).json({ message: "No KPIs found" });
       }
-
-      // Get performance data for the KPIs
       const [performanceData] = await db.execute(
         "SELECT * FROM performance_data WHERE kpi_id IN (?) ORDER BY date ASC",
         [kpiIds]
       );
 
-      // Create PDF document
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 50, bufferPages: true });
       let buffers = [];
       doc.on("data", buffers.push.bind(buffers));
       doc.on("end", () => {
+        addFooter(doc);
         const pdfData = Buffer.concat(buffers);
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
@@ -128,29 +204,39 @@ router.post(
         res.send(pdfData);
       });
 
-      // Generate content
       for (const kpi of kpis) {
+        addHeader(doc, `KPI: ${kpi.name}`);
         doc
-          .fontSize(22)
-          .fillColor("blue")
-          .text(`KPI Report: ${kpi.name}`, { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(14).fillColor("black");
-        doc.text(`Description: ${kpi.description}`);
-        doc.text(`Target: ${kpi.target}`);
-        doc.text(`Unit: ${kpi.unit}`);
-        doc.text(`Frequency: ${kpi.frequency}`);
+          .moveDown(0.5)
+          .fontSize(13)
+          .fillColor("black")
+          .font("Helvetica-Bold")
+          .text("Description:", 50, doc.y, { continued: true, align: "left" })
+          .font("Helvetica")
+          .text(` ${kpi.description}`, { align: "left" });
+        doc
+          .font("Helvetica-Bold")
+          .text("Target:", 50, doc.y, { continued: true, align: "left" })
+          .font("Helvetica")
+          .text(` ${kpi.target} ${kpi.unit}`, { align: "left" });
+        doc
+          .font("Helvetica-Bold")
+          .text("Frequency:", 50, doc.y, { continued: true, align: "left" })
+          .font("Helvetica")
+          .text(` ${kpi.frequency}`, { align: "left" });
         doc.moveDown();
 
-        doc.fontSize(18).text("Performance Data", { underline: true });
+        doc
+          .fontSize(14)
+          .fillColor("#0d47a1")
+          .font("Helvetica-Bold")
+          .text("Performance Data", 50, doc.y, { align: "left", underline: true });
         const kpiData = performanceData.filter((pd) => pd.kpi_id === kpi.id);
 
         if (kpiData.length === 0) {
-          doc.text("No performance data available.");
+          doc.font("Helvetica").fontSize(12).fillColor("gray").text("No performance data available.");
         } else {
-          kpiData.forEach((row) => {
-            doc.text(`Date: ${formatDate(row.date)} | Value: ${row.value}`);
-          });
+          renderPerformanceTable(doc, kpiData);
         }
 
         if (kpi !== kpis[kpis.length - 1]) {
@@ -168,7 +254,6 @@ router.post(
   }
 );
 
-// Get report for a specific KPI
 router.get(
   "/report/:kpiId",
   authMiddleware(["Admin", "User", "Analyst"]),
@@ -176,26 +261,22 @@ router.get(
     const { kpiId } = req.params;
     try {
       const db = req.app.locals.db;
-
-      // Get KPI
       const [kpis] = await db.execute("SELECT * FROM kpis WHERE id = ?", [
         kpiId,
       ]);
       if (!kpis.length) {
         return res.status(404).json({ message: "KPI not found" });
       }
-
-      // Get performance data for the KPI
       const [performanceData] = await db.execute(
         "SELECT * FROM performance_data WHERE kpi_id = ? ORDER BY date ASC",
         [kpiId]
       );
 
-      // Create PDF document
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 50, bufferPages: true });
       let buffers = [];
       doc.on("data", buffers.push.bind(buffers));
       doc.on("end", () => {
+        addFooter(doc);
         const pdfData = Buffer.concat(buffers);
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
@@ -205,28 +286,41 @@ router.get(
         res.send(pdfData);
       });
 
-      // Generate content
       const kpi = kpis[0];
+      addHeader(doc, `KPI: ${kpi.name}`);
       doc
-        .fontSize(22)
-        .fillColor("blue")
-        .text(`KPI Report: ${kpi.name}`, { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(14).fillColor("black");
-      doc.text(`Description: ${kpi.description}`);
-      doc.text(`Target: ${kpi.target}`);
-      doc.text(`Unit: ${kpi.unit}`);
-      doc.text(`Frequency: ${kpi.frequency}`);
+        .moveDown(0.5)
+        .fontSize(13)
+        .fillColor("black")
+        .font("Helvetica-Bold")
+        .text("Description:", 50, doc.y, { continued: true, align: "left" })
+        .font("Helvetica")
+        .text(` ${kpi.description}`, { align: "left" });
+
+      doc
+        .font("Helvetica-Bold")
+        .text("Target:", 50, doc.y, { continued: true, align: "left" })
+        .font("Helvetica")
+        .text(` ${kpi.target} ${kpi.unit}`, { align: "left" });
+
+      doc
+        .font("Helvetica-Bold")
+        .text("Frequency:", 50, doc.y, { continued: true, align: "left" })
+        .font("Helvetica")
+        .text(` ${kpi.frequency}`, { align: "left" });
+
       doc.moveDown();
 
-      doc.fontSize(18).text("Performance Data", { underline: true });
+      doc
+        .fontSize(14)
+        .fillColor("#0d47a1")
+        .font("Helvetica-Bold")
+        .text("Performance Data", 50, doc.y, { align: "left", underline: true });
 
       if (performanceData.length === 0) {
-        doc.text("No performance data available.");
+        doc.font("Helvetica").fontSize(12).fillColor("gray").text("No performance data available.");
       } else {
-        performanceData.forEach((row) => {
-          doc.text(`Date: ${formatDate(row.date)} | Value: ${row.value}`);
-        });
+        renderPerformanceTable(doc, performanceData);
       }
 
       doc.end();
