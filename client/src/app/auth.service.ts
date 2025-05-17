@@ -168,8 +168,30 @@ export class AuthService {
   }
 
   createLog(logData: { userId: number; action: string; timestamp: string }) {
+    const formattedTimestamp = this.formatTimestampForMySQL(
+      new Date(logData.timestamp)
+    );
+    logData.timestamp = formattedTimestamp;
     return this.http.post(`${this.apiUrl}/api/logs`, logData, {
       headers: this.getAuthHeaders(),
     });
+  }
+
+  formatTimestampForMySQL(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
+    return (
+      date.getFullYear() +
+      '-' +
+      pad(date.getMonth() + 1) +
+      '-' +
+      pad(date.getDate()) +
+      ' ' +
+      pad(date.getHours()) +
+      ':' +
+      pad(date.getMinutes()) +
+      ':' +
+      pad(date.getSeconds())
+    );
   }
 }
