@@ -31,6 +31,7 @@ export class DataImportComponent implements OnInit {
   popupMessage: string = '';
   popupType: 'success' | 'error' = 'error';
   private apiUrl = environment.apiUrl || '';
+importType: any;
 
   constructor(
     private authService: AuthService,

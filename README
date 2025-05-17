@@ -1,0 +1,92 @@
+# DarwinKPI
+
+DarwinKPI is a business Key Performance Indicator (KPI) platform for workforce analytics, real-time tracking, and actionable insights.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+- [Removing Data from Repository](#removing-data-from-repository)
+- [GitHub Remote Setup](#github-remote-setup)
+---
+
+## Features
+
+- Real-time KPI tracking
+- Comprehensive analytics and reporting
+- User management
+- Custom dashboards
+
+---
+
+## Project Structure
+
+```
+darwinKPI/
+│
+├── client/      # Angular frontend application
+├── server/      # Node.js backend server
+├── data/        # Data files (excluded from git)
+├── README       # Project documentation
+└── .gitignore   # Git ignore rules
+```
+
+---
+
+## Getting Started
+
+
+### Backend Setup
+
+```sh
+cd server
+node index.js
+```
+
+### Frontend Setup
+
+```sh
+cd client
+ng serve --open
+```
+
+Open your browser at [http://localhost:4200](http://localhost:4200).
+
+---
+
+## Removing Data from Repository
+
+To remove the `data` folder from git tracking and update `.gitignore`:
+
+```sh
+git rm -r --cached data
+git add data
+git add .gitignore
+git commit -m "Removed data folder from Git tracking and updated .gitignore"
+```
+
+To remove all history of the `data` folder:
+
+```sh
+git filter-repo --path data --invert-paths
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+git push origin main --force
+```
+
+---
+
+## GitHub Remote Setup
+
+If the remote is not set:
+
+```sh
+git remote add origin https://github.com/Famanias/darwinKPI.git
+```
+
+---
