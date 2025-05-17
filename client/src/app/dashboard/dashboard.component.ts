@@ -376,7 +376,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     return color;
   }
 
-<<<<<<< HEAD
   downloadMyKpiReport() {
     const user = this.authService.getUser();
     if (!user?.id) {
@@ -404,7 +403,4 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     );
   }
-=======
-
->>>>>>> origin/dave
 }
