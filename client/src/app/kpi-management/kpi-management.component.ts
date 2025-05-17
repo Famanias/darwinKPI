@@ -162,26 +162,46 @@ export class KpiManagementComponent implements OnInit {
   }
 
   downloadReport() {
-    this.authService.downloadAllKpiReport().subscribe(
-      (response) => {
-        const blob = new Blob([response.body!], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
+        const user = this.authService.getUser();
+        if (!user?.id) {
+          alert('User session expired. Please log in again.');
+          return;
+        }
+        this.authService.downloadAllKpiReport().subscribe(
+          (response) => {
+            const blob = new Blob([response.body!], {
+              type: 'application/pdf',
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
 
-        // Try to get filename from Content-Disposition
-        const contentDisposition = response.headers.get('Content-Disposition');
-        const match = contentDisposition?.match(/filename="(.+)"/);
-        const filename = match ? match[1] : 'kpi_report_all.pdf';
+            // Try to get filename from Content-Disposition
+            const contentDisposition = response.headers.get(
+              'Content-Disposition'
+            );
+            const match = contentDisposition?.match(/filename="(.+)"/);
+            const filename = match ? match[1] : 'kpi_report_all.pdf';
 
-        a.download = filename;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      (error) => {
-        console.error('Download failed', error);
-        alert('Failed to download report.');
-      }
-    );
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+          },
+          (error) => {
+            console.error('Download failed', error);
+            alert('Failed to download report.');
+          }
+        );
+
+        this.authService
+          .createLog({
+            userId: user.id,
+            action: 'Downloaded KPI Report',
+            timestamp: new Date().toISOString(),
+          })
+          .subscribe({
+            next: () => console.log('Log entry created successfully'),
+            error: (err) => console.error('Error creating log entry:', err),
+          });
   }
 }

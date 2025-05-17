@@ -159,4 +159,17 @@ export class AuthService {
       observe: 'response',
     });
   }
+
+  //Logs Methods
+  getLogs(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/api/logs`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  createLog(logData: { userId: number; action: string; timestamp: string }) {
+    return this.http.post(`${this.apiUrl}/api/logs`, logData, {
+      headers: this.getAuthHeaders(),
+    });
+  }
 }
