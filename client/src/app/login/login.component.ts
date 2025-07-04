@@ -4,11 +4,12 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // Add this import
 
 @Component({
   selector: 'app-login',
-  standalone: true, // Since you're using standalone components
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatSnackBarModule], // Add MatSnackBarModule
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
@@ -17,13 +18,17 @@ export class LoginComponent {
   password: string = '';
   error: string = '';
 
-  constructor(private http: HttpClient, private authService: AuthService, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar
+  ) {}
 
   onSubmit(): void {
     this.error = '';
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
-        console.log('Login successful', response);
         const user = this.authService.getUser();
         if (user) {
           switch (user.role) {
@@ -39,17 +44,17 @@ export class LoginComponent {
               break;
           }
         } else {
-          this.router.navigate(['/dashboard']); // Fallback
+          this.router.navigate(['/dashboard']);
         }
       },
       error: (err) => {
         this.error = err.error?.message || 'Login failed. Please try again.';
+        this.snackBar.open(this.error, 'Close', { duration: 3000 }); // Show toast
       }
     });
   }
 
   navigateToRegister() {
     this.router.navigate(['/register']);
-    console.log('Navigating to register');
   }
 }
