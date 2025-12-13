@@ -8,9 +8,8 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './kpi-management.component.html',
   styleUrls: ['./kpi-management.component.css'],
   imports: [CommonModule, FormsModule],
-  standalone: true
+  standalone: true,
 })
-
 export class KpiManagementComponent implements OnInit {
   kpis: any[] = [];
   showCreateModal = false;
@@ -20,7 +19,7 @@ export class KpiManagementComponent implements OnInit {
     unit: 'Number',
     target: 0,
     frequency: 'Daily',
-    visualization: 'Bar'
+    visualization: 'Bar',
   };
 
   showEditModal = false;
@@ -31,18 +30,23 @@ export class KpiManagementComponent implements OnInit {
     unit: 'Number',
     target: 0,
     frequency: 'Daily',
-    visualization: 'Bar'
+    visualization: 'Bar',
   };
-  
+
   templates = [
-    'Sales Target', 'Customer Satisfaction', 'Task Completion Rate',
-    'Quality Assurance', 'Employee Engagement', 'Revenue Growth', 'Cost Reduction'
+    'Sales Target',
+    'Customer Satisfaction',
+    'Task Completion Rate',
+    'Quality Assurance',
+    'Employee Engagement',
+    'Revenue Growth',
+    'Cost Reduction',
   ];
   units = ['Number', 'Currency', 'Percentage'];
   frequencies = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly'];
   visualizations = ['Bar', 'Gauge', 'Line', 'Pie'];
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
     this.loadKpis();
@@ -90,7 +94,7 @@ export class KpiManagementComponent implements OnInit {
       unit: kpi.unit,
       target: kpi.target,
       frequency: kpi.frequency,
-      visualization: kpi.visualization
+      visualization: kpi.visualization,
     };
     this.showEditModal = true;
   }
@@ -104,7 +108,7 @@ export class KpiManagementComponent implements OnInit {
       unit: '',
       target: 0,
       frequency: '',
-      visualization: ''
+      visualization: '',
     };
   }
 
@@ -122,7 +126,7 @@ export class KpiManagementComponent implements OnInit {
         } else {
           alert('Update failed. Check console for details.');
         }
-      }
+      },
     });
   }
 
@@ -153,7 +157,51 @@ export class KpiManagementComponent implements OnInit {
       unit: 'Number',
       target: 0,
       frequency: 'Daily',
-      visualization: 'Bar'
+      visualization: 'Bar',
     };
+  }
+
+  downloadReport() {
+        const user = this.authService.getUser();
+        if (!user?.id) {
+          alert('User session expired. Please log in again.');
+          return;
+        }
+        this.authService.downloadAllKpiReport().subscribe(
+          (response) => {
+            const blob = new Blob([response.body!], {
+              type: 'application/pdf',
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            // Try to get filename from Content-Disposition
+            const contentDisposition = response.headers.get(
+              'Content-Disposition'
+            );
+            const match = contentDisposition?.match(/filename="(.+)"/);
+            const filename = match ? match[1] : 'kpi_report_all.pdf';
+
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+          },
+          (error) => {
+            console.error('Download failed', error);
+            alert('Failed to download report.');
+          }
+        );
+
+        this.authService
+          .createLog({
+            userId: user.id,
+            action: 'Downloaded KPI Report',
+            timestamp: new Date().toISOString(),
+          })
+          .subscribe({
+            next: () => console.log('Log entry created successfully'),
+            error: (err) => console.error('Error creating log entry:', err),
+          });
   }
 }

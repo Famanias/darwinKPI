@@ -44,7 +44,6 @@ import { CommonModule } from '@angular/common';
 
       .main-content {
         flex: 1;
-        padding: 2rem;
       }
 
       .auth-container {

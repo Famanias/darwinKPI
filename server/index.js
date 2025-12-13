@@ -53,6 +53,8 @@ const initializeApp = async () => {
     const performanceRoutes = require('./routes/performance');
     const analyticsRoutes = require("./routes/analytics");
     const logsRoutes = require("./routes/logs");
+    const importRoutes = require("./routes/import");
+    const downloadRoutes = require("./routes/download");
 
     app.use("/api/auth", authRoutes);
     app.use("/api/kpis", kpiRoutes);
@@ -60,6 +62,8 @@ const initializeApp = async () => {
     app.use("/api/performance-data", performanceRoutes);
     app.use("/api/analytics", analyticsRoutes);
     app.use("/api/logs", logsRoutes);
+    app.use("/api/import", importRoutes);
+    app.use("/api/download", downloadRoutes);
 
     // Error handling middleware
     app.use((err, req, res, next) => {
