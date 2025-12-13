@@ -7,15 +7,9 @@ const cors = require("cors");
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [
-  "http://localhost:4200",
-  "http://localhost:4201",
-  "https://darwinkpi.vercel.app",
-];
-
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: true, // Allow all origins for now
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -24,7 +18,7 @@ app.use(
 app.use(express.json());
 
 // Database path - use RAILWAY_VOLUME_MOUNT_PATH if available (for persistent storage)
-const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
   ? `${process.env.RAILWAY_VOLUME_MOUNT_PATH}/darwinkpi.db`
   : "./darwinkpi.db";
 
