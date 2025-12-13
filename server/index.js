@@ -23,15 +23,20 @@ app.use(
 
 app.use(express.json());
 
+// Database path - use RAILWAY_VOLUME_MOUNT_PATH if available (for persistent storage)
+const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+  ? `${process.env.RAILWAY_VOLUME_MOUNT_PATH}/darwinkpi.db`
+  : "./darwinkpi.db";
+
 // Database connection setup
 const initDB = async () => {
   return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database("./darwinkpi.db", (err) => {
+    const db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
         console.error("SQLite connection error:", err.message);
         reject(err);
       } else {
-        console.log("SQLite connected");
+        console.log(`SQLite connected at ${dbPath}`);
 
         // Promisify database methods
         db.runAsync = promisify(db.run.bind(db));
