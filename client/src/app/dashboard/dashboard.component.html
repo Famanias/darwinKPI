@@ -486,7 +486,21 @@
           &times;
         </button>
       </div>
-      <p class="text-sm text-gray-600 mb-4">Filter KPIs to display</p>
+      <p class="text-sm text-gray-600 mb-2">Filter KPIs to display</p>
+      <div class="flex gap-2 mb-4">
+        <button
+          (click)="selectAllKpis()"
+          class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Select All
+        </button>
+        <button
+          (click)="deselectAllKpis()"
+          class="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
+        >
+          Deselect All
+        </button>
+      </div>
       <div class="config-list">
         <div
           *ngFor="let kpi of kpis; let i = index"

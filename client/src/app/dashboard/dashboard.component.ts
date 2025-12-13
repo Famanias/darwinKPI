@@ -264,14 +264,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (savedState) {
       const savedNames: string[] = JSON.parse(savedState);
-      this.widgets = this.kpis
-        .filter((kpi) => savedNames.includes(kpi.name))
-        .map((kpi) => this.createWidgetFromKpi(kpi));
+      // Only use saved state if it has items, otherwise show all KPIs
+      if (savedNames.length > 0) {
+        this.widgets = this.kpis
+          .filter((kpi) => savedNames.includes(kpi.name))
+          .map((kpi) => this.createWidgetFromKpi(kpi));
+      } else {
+        // Saved state is empty, default to all KPIs
+        this.widgets = this.kpis.map((kpi) => this.createWidgetFromKpi(kpi));
+      }
     } else {
-      // Default: show all KPIs
+      // No saved state: show all KPIs by default
       this.widgets = this.kpis.map((kpi) => this.createWidgetFromKpi(kpi));
     }
-    this.saveWidgetState();
+
+    // Only save if we have widgets
+    if (this.widgets.length > 0) {
+      this.saveWidgetState();
+    }
     console.log('Initialized Widgets:', this.widgets);
   }
 
@@ -293,6 +303,25 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isKpiSelected(kpiName: string): boolean {
     return this.widgets.some((w) => w.name === kpiName);
+  }
+
+  selectAllKpis(): void {
+    // Add all KPIs that aren't already selected
+    this.kpis.forEach((kpi) => {
+      if (!this.isKpiSelected(kpi.name)) {
+        const newWidget = this.createWidgetFromKpi(kpi);
+        this.widgets.push(newWidget);
+        this.fetchSingleWidgetData(newWidget);
+      }
+    });
+    this.saveWidgetState();
+    this.setupKpiCharts();
+  }
+
+  deselectAllKpis(): void {
+    this.widgets = [];
+    this.saveWidgetState();
+    this.setupKpiCharts();
   }
 
   toggleKpi(kpiName: string): void {

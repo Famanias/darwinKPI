@@ -1,7 +1,9 @@
-<div class="flex min-h-screen flex-col items-center justify-center py-12">
+<div
+  class="flex min-h-screen flex-col items-center justify-center py-12 bg-gray-50"
+>
   <div class="container flex flex-col items-center justify-center">
     <div
-      class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+      class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[420px]"
     >
       <div class="flex flex-col space-y-2 text-center">
         <h1 class="text-2xl font-semibold tracking-tight">
@@ -10,12 +12,34 @@
         <p class="text-sm text-gray-500">Create an account to get started</p>
       </div>
       <div class="card">
-        <div class="card border border-grey-400 rounded-lg p-4">
+        <div
+          class="card bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+        >
           <!-- Error message display -->
           <form (ngSubmit)="onSubmit()">
             <div class="grid gap-4">
+              <!-- Name field -->
               <div class="grid gap-2">
-                <label for="email" class="block text-sm font-medium"
+                <label
+                  for="name"
+                  class="block text-sm font-medium text-gray-700"
+                  >Full Name</label
+                >
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  [(ngModel)]="name"
+                  name="name"
+                />
+              </div>
+
+              <div class="grid gap-2">
+                <label
+                  for="email"
+                  class="block text-sm font-medium text-gray-700"
                   >Email</label
                 >
                 <input
@@ -23,20 +47,23 @@
                   type="email"
                   placeholder="name@example.com"
                   required
-                  class="w-full p-2 border rounded"
+                  class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   [(ngModel)]="email"
                   name="email"
                 />
               </div>
+
               <div class="grid gap-2">
-                <label for="password" class="block text-sm font-medium"
+                <label
+                  for="password"
+                  class="block text-sm font-medium text-gray-700"
                   >Password</label
                 >
                 <input
                   id="password"
                   type="password"
                   required
-                  class="w-full p-2 border rounded"
+                  class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   [(ngModel)]="password"
                   name="password"
                 />
@@ -44,38 +71,145 @@
                   Must be at least 8 characters long
                 </p>
               </div>
+
               <div class="grid gap-2">
-                <label for="confirm-password" class="block text-sm font-medium"
+                <label
+                  for="confirm-password"
+                  class="block text-sm font-medium text-gray-700"
                   >Confirm Password</label
                 >
                 <input
                   id="confirm-password"
                   type="password"
                   required
-                  class="w-full p-2 border rounded"
+                  class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   [(ngModel)]="confirmPassword"
                   name="confirmPassword"
                 />
               </div>
+
+              <!-- Organization Section -->
+              <div class="border-t border-gray-200 pt-4 mt-2">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">
+                  Organization
+                </h3>
+
+                <!-- Toggle between create and join -->
+                <div class="flex gap-2 mb-4">
+                  <button
+                    type="button"
+                    (click)="orgMode = 'create'"
+                    [class]="
+                      orgMode === 'create'
+                        ? 'flex-1 py-2 px-3 text-sm font-medium rounded-lg bg-blue-600 text-white'
+                        : 'flex-1 py-2 px-3 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    "
+                  >
+                    Create New
+                  </button>
+                  <button
+                    type="button"
+                    (click)="orgMode = 'join'"
+                    [class]="
+                      orgMode === 'join'
+                        ? 'flex-1 py-2 px-3 text-sm font-medium rounded-lg bg-blue-600 text-white'
+                        : 'flex-1 py-2 px-3 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    "
+                  >
+                    Join Existing
+                  </button>
+                </div>
+
+                <!-- Create organization form -->
+                <div *ngIf="orgMode === 'create'" class="grid gap-2">
+                  <label
+                    for="org-name"
+                    class="block text-sm font-medium text-gray-700"
+                    >Organization Name</label
+                  >
+                  <input
+                    id="org-name"
+                    type="text"
+                    placeholder="Acme Corporation"
+                    required
+                    class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    [(ngModel)]="organizationName"
+                    name="organizationName"
+                  />
+                  <p class="text-xs text-gray-500">
+                    You'll be the admin of this organization
+                  </p>
+                </div>
+
+                <!-- Join organization form -->
+                <div *ngIf="orgMode === 'join'" class="grid gap-2">
+                  <label
+                    for="invite-code"
+                    class="block text-sm font-medium text-gray-700"
+                    >Invite Code</label
+                  >
+                  <input
+                    id="invite-code"
+                    type="text"
+                    placeholder="Enter invite code (e.g., ABC12345)"
+                    required
+                    class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
+                    [(ngModel)]="inviteCode"
+                    name="inviteCode"
+                    (blur)="verifyInviteCode()"
+                  />
+                  <div *ngIf="isVerifying" class="text-xs text-gray-500">
+                    <span class="inline-block animate-spin mr-1">⟳</span>
+                    Verifying...
+                  </div>
+                  <div
+                    *ngIf="verifiedOrgName && !isVerifying"
+                    class="text-xs text-green-600 flex items-center gap-1"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    Joining: {{ verifiedOrgName }}
+                  </div>
+                  <div
+                    *ngIf="inviteCode && !verifiedOrgName && !isVerifying"
+                    class="text-xs text-red-500"
+                  >
+                    Invalid invite code
+                  </div>
+                </div>
+              </div>
+
               <div
                 *ngIf="error"
-                class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"
+                class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm"
               >
                 {{ error }}
               </div>
+
               <button
                 type="submit"
-                class="w-full bg-black text-white rounded px-4 py-2 hover:bg-gray-800"
+                class="w-full bg-blue-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-blue-700 transition-colors"
               >
-                Register
+                Create Account
               </button>
             </div>
           </form>
         </div>
         <div class="card-footer flex flex-col">
-          <div class="mt-2 text-center text-sm">
+          <div class="mt-4 text-center text-sm text-gray-600">
             Already have an account?
-            <a (click)="navigateToLogin()" class="text-blue-600 underline"
+            <a
+              (click)="navigateToLogin()"
+              class="text-blue-600 hover:underline cursor-pointer font-medium"
               >Login</a
             >
           </div>

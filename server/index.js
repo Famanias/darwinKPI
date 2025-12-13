@@ -9,6 +9,7 @@ const app = express();
 // CORS configuration
 const allowedOrigins = [
   "http://localhost:4200",
+  "http://localhost:4201",
   "https://darwinkpi.vercel.app",
 ];
 
@@ -56,10 +57,75 @@ const initDB = async () => {
           }
         };
 
-        resolve(db);
+        // Initialize schema with organizations support
+        initializeSchema(db)
+          .then(() => resolve(db))
+          .catch(reject);
       }
     });
   });
+};
+
+// Initialize database schema with organization support
+const initializeSchema = async (db) => {
+  // Create organizations table
+  await db.runAsync(`
+    CREATE TABLE IF NOT EXISTS organizations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      invite_code TEXT UNIQUE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_by INTEGER
+    )
+  `);
+
+  // Check if org_id column exists in users table
+  const usersInfo = await db.allAsync("PRAGMA table_info(users)");
+  const hasOrgId = usersInfo.some((col) => col.name === "org_id");
+
+  if (!hasOrgId) {
+    // Add org_id to users table
+    await db.runAsync(
+      `ALTER TABLE users ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
+    );
+    console.log("Added org_id column to users table");
+  }
+
+  // Check if org_id column exists in kpis table
+  const kpisInfo = await db.allAsync("PRAGMA table_info(kpis)");
+  const kpisHasOrgId = kpisInfo.some((col) => col.name === "org_id");
+
+  if (!kpisHasOrgId) {
+    await db.runAsync(
+      `ALTER TABLE kpis ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
+    );
+    console.log("Added org_id column to kpis table");
+  }
+
+  // Check if org_id column exists in performance_data table
+  const perfInfo = await db.allAsync("PRAGMA table_info(performance_data)");
+  const perfHasOrgId = perfInfo.some((col) => col.name === "org_id");
+
+  if (!perfHasOrgId) {
+    await db.runAsync(
+      `ALTER TABLE performance_data ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
+    );
+    console.log("Added org_id column to performance_data table");
+  }
+
+  // Check if org_id column exists in logs table
+  const logsInfo = await db.allAsync("PRAGMA table_info(logs)");
+  const logsHasOrgId = logsInfo.some((col) => col.name === "org_id");
+
+  if (!logsHasOrgId) {
+    await db.runAsync(
+      `ALTER TABLE logs ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
+    );
+    console.log("Added org_id column to logs table");
+  }
+
+  console.log("Database schema initialized with organization support");
 };
 
 // Initialize database and routes
@@ -79,6 +145,7 @@ const initializeApp = async () => {
     const logsRoutes = require("./routes/logs");
     const importRoutes = require("./routes/import");
     const downloadRoutes = require("./routes/download");
+    const organizationsRoutes = require("./routes/organizations");
 
     app.use("/api/auth", authRoutes);
     app.use("/api/kpis", kpiRoutes);
@@ -88,6 +155,7 @@ const initializeApp = async () => {
     app.use("/api/logs", logsRoutes);
     app.use("/api/import", importRoutes);
     app.use("/api/download", downloadRoutes);
+    app.use("/api/organizations", organizationsRoutes);
 
     // Error handling middleware
     app.use((err, req, res, next) => {

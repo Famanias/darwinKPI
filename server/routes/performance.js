@@ -4,17 +4,23 @@ const authMiddleware = require("../middleware/auth");
 
 // IMPORTANT: Static routes must come BEFORE parameterized routes!
 
-// Get all performance data (for dashboard visualizations)
+// Get all performance data (for dashboard visualizations) - filtered by organization
 router.get(
   "/all",
   authMiddleware(["Admin", "Analyst", "User"]),
   async (req, res) => {
     try {
       const db = req.app.locals.db;
+
+      // Filter by organization
+      if (!req.user.org_id) {
+        return res.status(200).json([]);
+      }
+
       const rows = await new Promise((resolve, reject) => {
         db.all(
-          "SELECT * FROM performance_data ORDER BY date DESC",
-          [],
+          "SELECT * FROM performance_data WHERE org_id = ? ORDER BY date DESC",
+          [req.user.org_id],
           (err, rows) => {
             if (err) reject(err);
             else resolve(rows);
@@ -32,7 +38,7 @@ router.get(
   }
 );
 
-// Get performance value for a specific KPI/period (shared across all users)
+// Get performance value for a specific KPI/period (filtered by organization)
 router.get(
   "/value",
   authMiddleware(["Admin", "Analyst", "User"]),
@@ -51,14 +57,19 @@ router.get(
       });
     }
 
+    // Filter by organization
+    if (!req.user.org_id) {
+      return res.status(200).json({ value: null });
+    }
+
     try {
       const db = req.app.locals.db;
       const freq = (frequency || "").toLowerCase();
       const now = new Date(date);
 
       let query =
-        "SELECT value, date FROM performance_data WHERE kpi_id = ? AND ";
-      let params = [Number(kpiId)];
+        "SELECT value, date FROM performance_data WHERE kpi_id = ? AND org_id = ? AND ";
+      let params = [Number(kpiId), req.user.org_id];
 
       if (freq === "daily") {
         const periodStart = now.toISOString().slice(0, 10);
@@ -124,7 +135,7 @@ router.get(
   }
 );
 
-// Add or update a performance value for a KPI/period (shared across all users)
+// Add or update a performance value for a KPI/period (filtered by organization)
 router.post(
   "/upsert",
   authMiddleware(["User", "Admin", "Analyst"]),
@@ -133,6 +144,15 @@ router.post(
     let frequency = req.body.frequency;
     let date = req.body.date || new Date();
 
+    // User must belong to an organization
+    if (!req.user.org_id) {
+      return res
+        .status(403)
+        .json({
+          message: "You must belong to an organization to add performance data",
+        });
+    }
+
     const freq = (frequency || "").toLowerCase();
     const now = new Date(date);
     const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
@@ -140,9 +160,10 @@ router.post(
     try {
       const db = req.app.locals.db;
 
-      // Build query to find existing record for this KPI and period (shared data)
-      let query = "SELECT id FROM performance_data WHERE kpi_id = ? AND ";
-      let params = [kpi_id];
+      // Build query to find existing record for this KPI and period (filtered by org)
+      let query =
+        "SELECT id FROM performance_data WHERE kpi_id = ? AND org_id = ? AND ";
+      let params = [kpi_id, req.user.org_id];
 
       if (freq === "daily") {
         query += "date = ?";
@@ -200,11 +221,11 @@ router.post(
         });
         console.log("Updated existing record:", existing.id);
       } else {
-        // Insert new record
+        // Insert new record with org_id
         await new Promise((resolve, reject) => {
           db.run(
-            "INSERT INTO performance_data (user_id, kpi_id, value, date) VALUES (?, ?, ?, ?)",
-            [user_id, kpi_id, value, dateStr],
+            "INSERT INTO performance_data (user_id, kpi_id, value, date, org_id) VALUES (?, ?, ?, ?, ?)",
+            [user_id, kpi_id, value, dateStr, req.user.org_id],
             function (err) {
               if (err) reject(err);
               else resolve(this);
@@ -222,7 +243,7 @@ router.post(
   }
 );
 
-// Add performance data (accessible to Admin and Analyst)
+// Add performance data (accessible to Admin and Analyst) - with org_id
 router.post(
   "/",
   authMiddleware(["Admin", "Analyst", "User"]),
@@ -235,13 +256,23 @@ router.post(
         });
       }
 
+      // User must belong to an organization
+      if (!req.user.org_id) {
+        return res
+          .status(403)
+          .json({
+            message:
+              "You must belong to an organization to add performance data",
+          });
+      }
+
       const db = req.app.locals.db;
       const dateStr = new Date(date).toISOString().slice(0, 10);
 
       const result = await new Promise((resolve, reject) => {
         db.run(
-          "INSERT INTO performance_data (kpi_id, user_id, value, date) VALUES (?, ?, ?, ?)",
-          [kpi_id, user_id, value, dateStr],
+          "INSERT INTO performance_data (kpi_id, user_id, value, date, org_id) VALUES (?, ?, ?, ?, ?)",
+          [kpi_id, user_id, value, dateStr, req.user.org_id],
           function (err) {
             if (err) reject(err);
             else resolve({ insertId: this.lastID });
@@ -251,7 +282,14 @@ router.post(
 
       res
         .status(201)
-        .json({ id: result.insertId, kpi_id, user_id, value, date: dateStr });
+        .json({
+          id: result.insertId,
+          kpi_id,
+          user_id,
+          value,
+          date: dateStr,
+          org_id: req.user.org_id,
+        });
     } catch (err) {
       console.error("Error adding performance data:", err);
       res.status(500).json({
@@ -262,7 +300,7 @@ router.post(
   }
 );
 
-// Get performance data for a user - MUST BE LAST (parameterized route)
+// Get performance data for a user - MUST BE LAST (parameterized route) - filtered by org
 router.get(
   "/:userId",
   authMiddleware(["Admin", "Analyst", "User"]),
@@ -271,10 +309,15 @@ router.get(
     try {
       const db = req.app.locals.db;
 
+      // Filter by organization
+      if (!req.user.org_id) {
+        return res.status(200).json([]);
+      }
+
       const rows = await new Promise((resolve, reject) => {
         db.all(
-          "SELECT * FROM performance_data WHERE user_id = ?",
-          [userId],
+          "SELECT * FROM performance_data WHERE user_id = ? AND org_id = ?",
+          [userId, req.user.org_id],
           (err, rows) => {
             if (err) reject(err);
             else resolve(rows);

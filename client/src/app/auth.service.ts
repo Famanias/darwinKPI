@@ -4,13 +4,34 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 
+interface Organization {
+  id: number;
+  name: string;
+  slug: string;
+  invite_code?: string;
+}
+
 interface LoginResponse {
   token: string;
   user: {
     id: number;
     email: string;
     role: string;
+    name: string;
+    org_id: number | null;
   };
+  organization: Organization | null;
+}
+
+interface RegisterResponse {
+  message: string;
+  user: {
+    id: number;
+    email: string;
+    role: string;
+    org_id: number;
+  };
+  organization: Organization;
 }
 
 @Injectable({
@@ -30,22 +51,40 @@ export class AuthService {
           if (response.token) {
             localStorage.setItem('token', response.token);
             localStorage.setItem('user', JSON.stringify(response.user));
+            if (response.organization) {
+              localStorage.setItem(
+                'organization',
+                JSON.stringify(response.organization)
+              );
+            }
           }
         })
       );
   }
 
-  register(email: string, password: string, name?: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/auth/register`, {
-      email,
-      password,
-      name,
-    });
+  register(
+    email: string,
+    password: string,
+    name?: string,
+    organizationName?: string,
+    inviteCode?: string
+  ): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(
+      `${this.apiUrl}/api/auth/register`,
+      {
+        email,
+        password,
+        name,
+        organizationName,
+        inviteCode,
+      }
+    );
   }
 
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('organization');
     window.location.href = '/login';
   }
 
@@ -53,13 +92,33 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  getUser(): { id: number; email: string; role: string } | null {
+  getUser(): {
+    id: number;
+    email: string;
+    role: string;
+    name?: string;
+    org_id?: number;
+  } | null {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   }
 
+  getOrganization(): Organization | null {
+    const org = localStorage.getItem('organization');
+    return org ? JSON.parse(org) : null;
+  }
+
+  setOrganization(org: Organization): void {
+    localStorage.setItem('organization', JSON.stringify(org));
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
+  }
+
+  hasOrganization(): boolean {
+    const user = this.getUser();
+    return !!(user && user.org_id);
   }
 
   getAuthHeaders(): HttpHeaders {
@@ -93,7 +152,85 @@ export class AuthService {
 
   hasRole(role: string): boolean {
     const user = this.getUser();
-    return user ? user.role === role : false;
+    return user ? user.role?.toLowerCase() === role.toLowerCase() : false;
+  }
+
+  // Organization Management Methods
+  getCurrentOrganization(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/api/organizations/current`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  createOrganization(name: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/api/organizations`,
+      { name },
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+  }
+
+  joinOrganization(inviteCode: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/api/organizations/join`,
+      { inviteCode },
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+  }
+
+  updateOrganization(name: string): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/api/organizations`,
+      { name },
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+  }
+
+  regenerateInviteCode(): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/api/organizations/regenerate-invite`,
+      {},
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+  }
+
+  getOrganizationMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/api/organizations/members`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  removeMember(userId: number): Observable<any> {
+    return this.http.delete(
+      `${this.apiUrl}/api/organizations/members/${userId}`,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+  }
+
+  updateMemberRole(userId: number, role: string): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/api/organizations/members/${userId}/role`,
+      { role },
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+  }
+
+  verifyInviteCode(code: string): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/api/organizations/verify-invite/${code}`
+    );
   }
 
   //user-management

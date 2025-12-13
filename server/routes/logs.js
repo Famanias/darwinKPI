@@ -1,12 +1,20 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');
+const authMiddleware = require("../middleware/auth");
 
-//Get all logs (accessible to Admin)
+//Get all logs for organization (accessible to Admin)
 router.get("/", authMiddleware(["Admin"]), async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const [rows] = await db.execute("SELECT * FROM logs");
+
+    // Filter by organization
+    if (!req.user.org_id) {
+      return res.status(200).json([]);
+    }
+
+    const [rows] = await db.execute("SELECT * FROM logs WHERE org_id = ?", [
+      req.user.org_id,
+    ]);
     res.status(200).json(rows);
   } catch (err) {
     console.error("Error fetching logs:", err);
@@ -16,14 +24,21 @@ router.get("/", authMiddleware(["Admin"]), async (req, res) => {
   }
 });
 
-// Get logs for a specific user (accessible to Admin)
+// Get logs for a specific user (accessible to Admin) - filtered by org
 router.get("/:userId", authMiddleware(["Admin"]), async (req, res) => {
   const { userId } = req.params;
   try {
     const db = req.app.locals.db;
-    const [rows] = await db.execute("SELECT * FROM logs WHERE user_id = ?", [
-      userId,
-    ]);
+
+    // Filter by organization
+    if (!req.user.org_id) {
+      return res.status(200).json([]);
+    }
+
+    const [rows] = await db.execute(
+      "SELECT * FROM logs WHERE user_id = ? AND org_id = ?",
+      [userId, req.user.org_id]
+    );
     res.status(200).json(rows);
   } catch (err) {
     console.error("Error fetching logs for user:", err);
@@ -41,10 +56,19 @@ router.post(
   async (req, res) => {
     const { userId, action, timestamp } = req.body;
     try {
+      // User must belong to an organization
+      if (!req.user.org_id) {
+        return res
+          .status(403)
+          .json({
+            message: "You must belong to an organization to create logs",
+          });
+      }
+
       const db = req.app.locals.db;
       await db.execute(
-        "INSERT INTO logs (user_id, action, timestamp) VALUES (?, ?, ?)",
-        [userId, action, timestamp]
+        "INSERT INTO logs (user_id, action, timestamp, org_id) VALUES (?, ?, ?, ?)",
+        [userId, action, timestamp, req.user.org_id]
       );
       res.status(201).json({ message: "Log entry created successfully" });
     } catch (err) {

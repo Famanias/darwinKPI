@@ -61,7 +61,7 @@ nav {
   gap: 0.5rem;
 }
 
-.nav-links a, 
+.nav-links a,
 .nav-links button {
   padding: 0.75rem 1rem;
   width: 100%;
@@ -71,7 +71,7 @@ nav {
   font-size: 0.875rem;
 }
 
-.nav-links a:hover, 
+.nav-links a:hover,
 .nav-links button:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
@@ -84,6 +84,55 @@ nav {
 
 .mt-auto {
   margin-top: auto;
+}
+
+/* User Info Section */
+.user-info-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: rgba(59, 130, 246, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-avatar svg {
+  width: 20px;
+  height: 20px;
+  color: #90cdf4;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #90cdf4;
+  text-transform: capitalize;
 }
 
 /* Responsive styles */
@@ -111,9 +160,9 @@ nav {
     font-size: 1rem;
   }
 
-  .nav-links a, 
+  .nav-links a,
   .nav-links button {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
   }
-} 
+}

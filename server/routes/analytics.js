@@ -9,12 +9,20 @@ router.get(
     try {
       const db = req.app.locals.db;
 
-      // Get all KPIs
-      const [kpis] = await db.execute("SELECT * FROM kpis");
+      // Filter by organization
+      if (!req.user.org_id) {
+        return res.status(200).json([]);
+      }
 
-      // Get all performance data
+      // Get all KPIs for user's organization
+      const [kpis] = await db.execute("SELECT * FROM kpis WHERE org_id = ?", [
+        req.user.org_id,
+      ]);
+
+      // Get all performance data for user's organization
       const [performanceData] = await db.execute(
-        "SELECT * FROM performance_data"
+        "SELECT * FROM performance_data WHERE org_id = ?",
+        [req.user.org_id]
       );
 
       // Group performance data under each KPI

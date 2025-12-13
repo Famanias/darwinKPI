@@ -1,0 +1,315 @@
+<div class="p-6 max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900">Organization Settings</h1>
+    <p class="text-gray-500 mt-1">
+      Manage your organization details and team members
+    </p>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div
+      class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+    ></div>
+  </div>
+
+  <!-- Success/Error messages -->
+  <div
+    *ngIf="success"
+    class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-2"
+  >
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        fill-rule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clip-rule="evenodd"
+      />
+    </svg>
+    {{ success }}
+  </div>
+
+  <div
+    *ngIf="error"
+    class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2"
+  >
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        fill-rule="evenodd"
+        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+        clip-rule="evenodd"
+      />
+    </svg>
+    {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && organization" class="space-y-6">
+    <!-- Organization Details Card -->
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Organization Details</h2>
+      </div>
+      <div class="p-6">
+        <div class="space-y-4">
+          <!-- Organization Name -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Organization Name</label
+            >
+            <div *ngIf="!isEditing" class="flex items-center gap-3">
+              <span class="text-gray-900 text-lg font-medium">{{
+                organization.name
+              }}</span>
+              <button
+                *ngIf="isAdmin()"
+                (click)="isEditing = true"
+                class="text-sm text-blue-600 hover:text-blue-700"
+              >
+                Edit
+              </button>
+            </div>
+            <div *ngIf="isEditing" class="flex items-center gap-2">
+              <input
+                type="text"
+                [(ngModel)]="editName"
+                class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <button
+                (click)="saveOrganization()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Save
+              </button>
+              <button
+                (click)="isEditing = false; editName = organization.name"
+                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- Organization Stats -->
+          <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+            <div>
+              <label class="block text-sm font-medium text-gray-500"
+                >Members</label
+              >
+              <span class="text-xl font-semibold text-gray-900">{{
+                organization.memberCount || members.length
+              }}</span>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-500"
+                >Created</label
+              >
+              <span class="text-gray-900">{{
+                organization.created_at | date : "mediumDate"
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite Code Card -->
+    <div
+      *ngIf="isAdmin()"
+      class="bg-white rounded-lg border border-gray-200 shadow-sm"
+    >
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Invite Team Members</h2>
+        <p class="text-sm text-gray-500 mt-1">
+          Share this code with your team members so they can join your
+          organization
+        </p>
+      </div>
+      <div class="p-6">
+        <div class="flex items-center gap-4">
+          <div class="flex-1 bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <label
+              class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1"
+              >Invite Code</label
+            >
+            <div class="flex items-center justify-between">
+              <span
+                class="text-2xl font-mono font-bold text-gray-900 tracking-widest"
+                >{{ organization.invite_code }}</span
+              >
+              <button
+                (click)="copyInviteCode()"
+                class="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                {{ inviteCopied ? "Copied!" : "Copy" }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button
+            (click)="copyInviteLink()"
+            class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            </svg>
+            Copy Invite Link
+          </button>
+          <button
+            (click)="regenerateCode()"
+            class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Regenerate Code
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Members Card -->
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Team Members</h2>
+      </div>
+      <div class="divide-y divide-gray-200">
+        <div
+          *ngFor="let member of members"
+          class="px-6 py-4 flex items-center justify-between"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
+            >
+              <span class="text-blue-600 font-medium">{{
+                member.name.charAt(0).toUpperCase()
+              }}</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-gray-900">{{ member.name }}</span>
+                <span
+                  *ngIf="isCurrentUser(member)"
+                  class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
+                  >You</span
+                >
+              </div>
+              <span class="text-sm text-gray-500">{{ member.email }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <select
+              *ngIf="isAdmin() && !isCurrentUser(member)"
+              [value]="member.role"
+              (change)="updateMemberRole(member, $any($event.target).value)"
+              class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white"
+            >
+              <option value="Admin">Admin</option>
+              <option value="User">User</option>
+              <option value="Analyst">Analyst</option>
+            </select>
+            <span
+              *ngIf="!isAdmin() || isCurrentUser(member)"
+              [class]="
+                'text-xs font-medium px-2.5 py-1 rounded-full ' +
+                (member.role === 'Admin'
+                  ? 'bg-purple-100 text-purple-700'
+                  : member.role === 'Analyst'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-700')
+              "
+            >
+              {{ member.role }}
+            </span>
+            <button
+              *ngIf="isAdmin() && !isCurrentUser(member)"
+              (click)="removeMember(member)"
+              class="text-red-600 hover:text-red-700 p-1.5 hover:bg-red-50 rounded"
+              title="Remove member"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          *ngIf="members.length === 0"
+          class="px-6 py-8 text-center text-gray-500"
+        >
+          No team members yet. Share your invite code to add members.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No organization state -->
+  <div
+    *ngIf="!isLoading && !organization"
+    class="bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center"
+  >
+    <div
+      class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center"
+    >
+      <svg
+        class="w-8 h-8 text-gray-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+        />
+      </svg>
+    </div>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">No Organization</h3>
+    <p class="text-gray-500 mb-4">You are not part of any organization yet.</p>
+  </div>
+</div>
