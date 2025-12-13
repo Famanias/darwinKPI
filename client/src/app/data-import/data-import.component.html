@@ -1,145 +1,463 @@
 <div class="data-import-container">
-  <h1 class="text-2xl font-bold mb-6 text-gray-800">Data Import</h1>
-  
+  <!-- Header Section -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Data Import</h1>
+      <p class="text-gray-500 mt-1">
+        Import performance data for your KPIs using CSV files
+      </p>
+    </div>
+  </div>
+
   <!-- Popup Message -->
   @if (showPopup) {
-    <div class="fixed top-4 right-4 max-w-md z-50 animate-popup">
-      <div class="rounded-lg shadow-lg p-4" 
-           [class]="popupType === 'success' ? 'bg-green-100' : 'bg-red-100'">
-        <div class="flex items-center">
-          <!-- Success Icon -->
-          @if (popupType === 'success') {
-            <svg class="w-5 h-5 mr-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+  <div class="fixed top-4 right-4 max-w-md z-50 animate-popup">
+    <div
+      class="rounded-lg shadow-lg p-4"
+      [class]="popupType === 'success' ? 'bg-green-100' : 'bg-red-100'"
+    >
+      <div class="flex items-center">
+        @if (popupType === 'success') {
+        <svg
+          class="w-5 h-5 mr-3 text-green-600"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        } @if (popupType === 'error') {
+        <svg
+          class="w-5 h-5 mr-3 text-red-600"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        }
+        <p
+          [class]="popupType === 'success' ? 'text-green-800' : 'text-red-800'"
+        >
+          {{ popupMessage }}
+        </p>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: KPI Selection & Templates -->
+    <div class="lg:col-span-1 space-y-6">
+      <!-- Step 1: Select KPI -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold"
+            >
+              1
+            </div>
+            <h2 class="text-lg font-semibold text-gray-800">
+              Select Target KPI
+            </h2>
+          </div>
+        </div>
+        <div class="p-5 max-h-80 overflow-y-auto">
+          @if (existingKpis.length === 0) {
+          <div class="text-center py-8 text-gray-500">
+            <svg
+              class="w-12 h-12 mx-auto mb-3 text-gray-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
+            <p>No KPIs available</p>
+            <p class="text-sm">Create a KPI first</p>
+          </div>
+          } @else {
+          <div class="space-y-2">
+            @for (kpi of existingKpis; track kpi.id) {
+            <div
+              class="p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-blue-300"
+              [class.border-blue-500]="selectedKpi?.id === kpi.id"
+              [class.bg-blue-50]="selectedKpi?.id === kpi.id"
+              [class.border-gray-200]="selectedKpi?.id !== kpi.id"
+              (click)="selectKpi(kpi)"
+            >
+              <div class="flex items-center justify-between">
+                <h3 class="font-medium text-gray-800">{{ kpi.name }}</h3>
+                @if (selectedKpi?.id === kpi.id) {
+                <svg
+                  class="w-5 h-5 text-blue-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                }
+              </div>
+              <p class="text-xs text-gray-500 mt-1">
+                {{ kpi.frequency }} · {{ kpi.unit }}
+              </p>
+            </div>
+            }
+          </div>
           }
-          <!-- Error Icon -->
-          @if (popupType === 'error') {
-            <svg class="w-5 h-5 mr-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </div>
+      </div>
+
+      <!-- Step 2: Download Template -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold"
+            >
+              2
+            </div>
+            <h2 class="text-lg font-semibold text-gray-800">
+              Download Template
+            </h2>
+          </div>
+        </div>
+        <div class="p-5">
+          @if (selectedKpi) {
+          <div class="space-y-4">
+            <div class="p-4 bg-gray-50 rounded-lg">
+              <p class="text-sm text-gray-600 mb-1">Template for:</p>
+              <p class="font-semibold text-gray-800">{{ selectedKpi.name }}</p>
+              <p class="text-xs text-gray-500 mt-1">
+                Frequency: {{ selectedKpi.frequency }} · Unit:
+                {{ selectedKpi.unit }}
+              </p>
+            </div>
+            <button
+              (click)="downloadTemplate()"
+              class="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition duration-200"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Download CSV Template
+            </button>
+            <p class="text-xs text-gray-500 text-center">
+              Pre-configured with correct column headers
+            </p>
+          </div>
+          } @else {
+          <div class="text-center py-6 text-gray-400">
+            <svg
+              class="w-10 h-10 mx-auto mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+              />
             </svg>
+            <p class="text-sm">Select a KPI first</p>
+          </div>
           }
-          <p [class]="popupType === 'success' ? 'text-green-800' : 'text-red-800'">
-            {{ popupMessage }}
-          </p>
         </div>
       </div>
     </div>
-  }
 
-  <!-- Import Type Selection
-  <div class="mb-8">
-    <h2 class="text-lg font-semibold mb-4">Select Import Type</h2>
-    <div class="flex space-x-4">
-      <button 
-        [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'existing' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
-        (click)="importType = 'existing'">
-        Import to Existing KPI
-      </button>
-      <button 
-        [class]="'px-4 py-2 rounded-lg transition duration-200 ' + (importType === 'new' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700')"
-        (click)="importType = 'new'">
-        Import New KPI
-      </button>
-    </div>
-  </div> -->
+    <!-- Right Column: Upload Section -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Step 3: Upload File -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold"
+            >
+              3
+            </div>
+            <h2 class="text-lg font-semibold text-gray-800">
+              Upload Data File
+            </h2>
+          </div>
+        </div>
+        <div class="p-6">
+          <!-- Drag & Drop Zone -->
+          <div
+            class="border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 hover:border-blue-400 hover:bg-blue-50"
+            [class.border-blue-500]="selectedFile"
+            [class.bg-blue-50]="selectedFile"
+            [class.border-gray-300]="!selectedFile"
+          >
+            @if (!selectedFile) {
+            <div class="space-y-4">
+              <div
+                class="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <svg
+                  class="w-8 h-8 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-medium text-gray-900">
+                  Drop your file here
+                </h3>
+                <p class="text-sm text-gray-500 mt-1">or click to browse</p>
+              </div>
+              <label
+                class="inline-block cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg transition duration-200"
+              >
+                <span>Select File</span>
+                <input
+                  type="file"
+                  class="hidden"
+                  (change)="onFileSelected($event)"
+                  accept=".csv,.xls,.xlsx"
+                />
+              </label>
+              <p class="text-xs text-gray-400">Supports CSV and Excel files</p>
+            </div>
+            } @else {
+            <div class="space-y-4">
+              <div
+                class="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center"
+              >
+                <svg
+                  class="w-8 h-8 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-medium text-gray-900">
+                  {{ selectedFile.name }}
+                </h3>
+                <p class="text-sm text-gray-500">
+                  {{ formatFileSize(selectedFile.size) }}
+                </p>
+              </div>
+              <button
+                (click)="clearFile()"
+                class="text-sm text-red-500 hover:text-red-600 underline"
+              >
+                Remove file
+              </button>
+            </div>
+            }
+          </div>
 
-  <!-- Existing KPI Selection -->
-  <!-- @if (importType === 'existing') { -->
-    <div class="mb-8">
-      <h2 class="text-lg font-semibold mb-4">Select Target KPI</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (kpi of existingKpis; track kpi.id) {
-          <div 
-            class="p-4 border rounded-lg cursor-pointer transition duration-200"
-            [class.border-blue-500]="selectedKpi?.id === kpi.id"
-            [class.bg-blue-50]="selectedKpi?.id === kpi.id"
-            (click)="selectKpi(kpi)">
-            <h3 class="font-medium">{{ kpi.name }}</h3>
-            <p class="text-sm text-gray-600">{{ kpi.description || 'No description' }}</p>
-            <div class="mt-2 text-sm">
-              <span class="text-gray-500">Unit: </span>
-              <span class="text-gray-700">{{ kpi.unit }}</span>
+          <!-- Upload Progress -->
+          @if (isUploading) {
+          <div class="mt-6">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm text-gray-600">Uploading...</span>
+              <span class="text-sm font-medium text-blue-600"
+                >{{ uploadProgress }}%</span
+              >
+            </div>
+            <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div
+                class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                [style.width.%]="uploadProgress"
+              ></div>
             </div>
           </div>
-        }
-      </div>
-    </div>
-  <!-- } -->
-  
-  <!-- File Upload Section -->
-  <div class="upload-section">
-    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-      <div class="mb-4">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-      </div>
-      
-      <div class="mb-4">
-        <h3 class="text-lg font-medium text-gray-900">Upload your data file</h3>
-        <p class="mt-1 text-sm text-gray-500">
-          @if (importType === 'existing') {
-            Upload data for {{ selectedKpi?.name || 'the selected KPI' }} (CSV or Excel)
-          } @else {
-            Upload new KPI definition and data (CSV or Excel)
           }
-        </p>
-        @if (importType === 'existing' && !selectedKpi) {
-          <p class="mt-2 text-sm text-orange-500">Please select a KPI first</p>
-        }
-      </div>
 
-      <div class="flex justify-center">
-        <label class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
-          <span>Select File</span>
-          <input type="file" class="hidden" (change)="onFileSelected($event)" accept=".csv,.xls,.xlsx">
-        </label>
-      </div>
-
-      @if (selectedFile) {
-        <div class="mt-4 text-sm text-gray-600">
-          Selected file: {{ selectedFile.name }}
+          <!-- Upload Button -->
+          <div class="mt-6">
+            <button
+              (click)="uploadFile()"
+              [disabled]="!selectedFile || isUploading || !selectedKpi"
+              class="w-full flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-200"
+            >
+              @if (isUploading) {
+              <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span>Uploading...</span>
+              } @else {
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                />
+              </svg>
+              <span>Upload Data</span>
+              }
+            </button>
+          </div>
         </div>
-      }
-    </div>
-  </div>
-
-  <!-- Upload Progress -->
-  @if (isUploading) {
-    <div class="progress-section mt-8">
-      <div class="bg-gray-200 rounded-full h-2 mb-2">
-        <div class="bg-blue-500 h-2 rounded-full transition-all duration-200"
-             [style.width.%]="uploadProgress"></div>
       </div>
-      <p class="text-sm text-gray-600 text-center">Uploading... {{ uploadProgress }}%</p>
+
+      <!-- Instructions Card -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+          <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+            <svg
+              class="w-5 h-5 text-blue-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Template Format Instructions
+          </h3>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <h4 class="font-medium text-gray-700">Required Columns</h4>
+              <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                  <span
+                    class="w-5 h-5 rounded bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    >1</span
+                  >
+                  <div>
+                    <p class="text-sm font-medium text-gray-700">date</p>
+                    <p class="text-xs text-gray-500">
+                      Format: YYYY-MM-DD (e.g., 2025-12-13)
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span
+                    class="w-5 h-5 rounded bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    >2</span
+                  >
+                  <div>
+                    <p class="text-sm font-medium text-gray-700">value</p>
+                    <p class="text-xs text-gray-500">
+                      Numeric value for the KPI
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <h4 class="font-medium text-gray-700">Example Data</h4>
+              <div
+                class="bg-gray-50 rounded-lg p-3 font-mono text-xs overflow-x-auto"
+              >
+                <div class="text-gray-600">date,value</div>
+                <div class="text-gray-800">2025-12-01,150</div>
+                <div class="text-gray-800">2025-12-02,175</div>
+                <div class="text-gray-800">2025-12-03,162</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <p class="text-sm text-amber-700 flex items-start gap-2">
+              <svg
+                class="w-5 h-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span
+                >Ensure dates match the KPI's frequency. For monthly KPIs, use
+                the first day of each month.</span
+              >
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
-  }
-
-  <!-- Upload Button -->
-  <div class="button-section mt-8">
-    <button (click)="uploadFile()"
-            [disabled]="!selectedFile || isUploading || (importType === 'existing' && !selectedKpi)"
-            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200">
-      Upload Data
-    </button>
   </div>
-
 </div>
 
 <style>
-.animate-popup {
-animation: popup 0.3s ease-out;
-}
+  .animate-popup {
+    animation: popup 0.3s ease-out;
+  }
 
-@keyframes popup {
-0% {
-  opacity: 0;
-  transform: translateY(-1rem);
-}
-100% {
-  opacity: 1;
-  transform: translateY(0);
-}
-}
-</style> 
+  @keyframes popup {
+    0% {
+      opacity: 0;
+      transform: translateY(-1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

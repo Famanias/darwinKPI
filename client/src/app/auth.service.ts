@@ -46,6 +46,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    window.location.href = '/login';
   }
 
   getToken(): string | null {
@@ -146,10 +147,9 @@ export class AuthService {
   }
 
   getPerformanceHistory(): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.apiUrl}/api/performance-data/${this.getUser()?.id}`,
-      { headers: this.getAuthHeaders() }
-    );
+    return this.http.get<any[]>(`${this.apiUrl}/api/performance-data/all`, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   downloadAllKpiReport() {
@@ -168,11 +168,15 @@ export class AuthService {
   }
 
   downloadKpiReportForUser(kpiIds: number[], userId: number) {
-    return this.http.post(`${this.apiUrl}/api/download/report`, { kpiIds, userId }, {
-      headers: this.getAuthHeaders(),
-      observe: 'response',
-      responseType: 'blob'
-    });
+    return this.http.post(
+      `${this.apiUrl}/api/download/report`,
+      { kpiIds, userId },
+      {
+        headers: this.getAuthHeaders(),
+        observe: 'response',
+        responseType: 'blob',
+      }
+    );
   }
 
   //Logs Methods
@@ -210,51 +214,34 @@ export class AuthService {
     );
   }
 
-  upsertPerformanceData(data: { user_id: number, kpi_id: number, value: number, frequency: string, date?: string }) {
-    const freq = (data.frequency || '').toLowerCase();
-    return this.http.post(`${this.apiUrl}/api/performance-data/upsert`, data, { headers: this.getAuthHeaders() });
-  }
-
-  saveInput(widget: any) {
-    const user = this.getUser();
-    if (!user) {
-      alert('User session expired. Please log in again.');
-      return;
-    }
-    const now = new Date();
-    console.log('Fetching for', { userId: user.id, kpiId: Number(widget.id.replace('kpi-', '')), frequency: widget.frequency, date: now.toISOString() });
-    this.upsertPerformanceData({
-      user_id: user.id,
-      kpi_id: Number(widget.id.replace('kpi-', '')),
-      value: widget.inputValue,
-      frequency: widget.frequency || 'Monthly',
-      date: now.toISOString()
-    }).subscribe(() => {
-      widget.inputSaved = true;
+  upsertPerformanceData(data: {
+    user_id: number;
+    kpi_id: number;
+    value: number;
+    frequency: string;
+    date?: string;
+  }) {
+    return this.http.post(`${this.apiUrl}/api/performance-data/upsert`, data, {
+      headers: this.getAuthHeaders(),
     });
   }
 
-  editInput(widget: any) {
-    widget.inputSaved = false;
-  }
-
-  getPerformanceValueForPeriod(userId: number, kpiId: number, frequency: string, date: string) {
+  getPerformanceValueForPeriod(kpiId: number, frequency: string, date: string) {
     const freq = (frequency || '').toLowerCase();
 
-    return this.http.get<any>(
-      `${this.apiUrl}/api/performance-data/value`,
-      {
-        params: { userId, kpiId, frequency, date },
-        headers: this.getAuthHeaders()
-      }
-    ).pipe(
-      tap((data) => {
-        console.log('Backend returned:', data);
-        console.log('userId:', userId, typeof userId);
-        console.log('kpiId:', kpiId, typeof kpiId);
-        console.log('frequency:', frequency);
-        console.log('date:', date);
+    return this.http
+      .get<any>(`${this.apiUrl}/api/performance-data/value`, {
+        params: {
+          kpiId: kpiId.toString(),
+          frequency: freq,
+          date,
+        },
+        headers: this.getAuthHeaders(),
       })
-    );
+      .pipe(
+        tap((data) => {
+          console.log('Backend returned for kpiId', kpiId, ':', data);
+        })
+      );
   }
 }

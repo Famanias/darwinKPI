@@ -19,105 +19,533 @@
 
   <!-- Main Content with Widgets and Configuration -->
   <div class="dashboard-content">
-    <!-- Widgets Area -->
-    <div class="widgets-grid">
-      <div *ngFor="let widget of widgets; let i = index" class="widget bg-white rounded shadow">
-        <div class="widget-header">
-          <h3 class="text-lg font-semibold">{{ widget.name }}</h3>
-        </div>
-        <div class="widget-content">
-          <p><strong>Description:</strong> {{ widget.description }}</p>
-          <p><strong>Target:</strong> {{ widget.target }} {{ widget.unit }}</p>
-          <p><strong>Frequency:</strong> {{ widget.frequency }}</p>
-          <div class="flex items-center justify-between mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Add Value</label>
-            <div *ngIf="!widget.inputSaved; else savedValue">
-              <input type="number" [(ngModel)]="widget.inputValue"
-                class="border rounded px-2 py-1 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter value" />
-              <button (click)="saveInput(widget)"
-                [disabled]="widget.inputValue === null || widget.inputValue === undefined"
-                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Save
+    <!-- KPI Performance Overview Section -->
+    <div class="bg-white rounded shadow p-6 mb-6" *ngIf="widgets.length > 0">
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+        <h2 class="text-xl font-semibold">KPI Performance Overview</h2>
+
+        <!-- Chart Controls -->
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- Time Range Selector -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">Time Range:</label>
+            <select
+              [(ngModel)]="chartTimeRange"
+              (change)="onChartControlChange()"
+              class="border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="365">Last year</option>
+              <option value="all">All time</option>
+              <option value="custom">Custom Range</option>
+            </select>
+          </div>
+
+          <!-- Custom Date Range -->
+          <div
+            *ngIf="chartTimeRange === 'custom'"
+            class="flex items-center gap-2"
+          >
+            <label class="text-sm text-gray-600">From:</label>
+            <input
+              type="date"
+              [(ngModel)]="chartStartDate"
+              (change)="onChartControlChange()"
+              class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <label class="text-sm text-gray-600">To:</label>
+            <input
+              type="date"
+              [(ngModel)]="chartEndDate"
+              (change)="onChartControlChange()"
+              class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <!-- Chart Type Selector -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">Chart Type:</label>
+            <div class="flex rounded overflow-hidden border">
+              <button
+                (click)="chartType = 'line'; onChartControlChange()"
+                [class.bg-blue-500]="chartType === 'line'"
+                [class.text-white]="chartType === 'line'"
+                [class.bg-gray-100]="chartType !== 'line'"
+                class="px-3 py-1.5 text-sm transition"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4v16"
+                  />
+                </svg>
+              </button>
+              <button
+                (click)="chartType = 'bar'; onChartControlChange()"
+                [class.bg-blue-500]="chartType === 'bar'"
+                [class.text-white]="chartType === 'bar'"
+                [class.bg-gray-100]="chartType !== 'bar'"
+                class="px-3 py-1.5 text-sm transition border-l"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
               </button>
             </div>
-            <ng-template #savedValue>
-              <div class="flex items-center">
-                <span class="text-lg font-semibold mr-3">{{ widget.inputValue }} {{ widget.unit }}</span>
-                <button (click)="editInput(widget)"
-                  class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                  Edit
-                </button>
-              </div>
-            </ng-template>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Filter Pills -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button
+          (click)="selectAllKpisInChart()"
+          [class.bg-blue-500]="selectedKpiIds.length === 0"
+          [class.text-white]="selectedKpiIds.length === 0"
+          [class.bg-gray-200]="selectedKpiIds.length > 0"
+          [class.text-gray-700]="selectedKpiIds.length > 0"
+          class="px-3 py-1 rounded-full text-sm font-medium transition"
+        >
+          All KPIs
+        </button>
+        <button
+          *ngFor="let kpi of kpis; let i = index"
+          (click)="toggleKpiInChart(kpi.id)"
+          [style.background-color]="
+            isKpiSelectedInChart(kpi.id)
+              ? kpiColors[i % kpiColors.length]
+              : '#E5E7EB'
+          "
+          [style.color]="isKpiSelectedInChart(kpi.id) ? 'white' : '#374151'"
+          class="px-3 py-1 rounded-full text-sm font-medium transition"
+        >
+          {{ kpi.name }}
+        </button>
+      </div>
+
+      <!-- Chart Canvas -->
+      <div style="height: 400px; position: relative">
+        <canvas #combinedKpiChart id="combinedKpiChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Widgets Area -->
+    <div class="widgets-grid">
+      <!-- Empty state when no widgets are selected -->
+      <div
+        *ngIf="widgets.length === 0"
+        class="empty-state bg-white rounded shadow p-8 text-center col-span-full"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-16 w-16 mx-auto mb-4 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">
+          No KPIs to Display
+        </h3>
+        <p class="text-gray-500 mb-4" *ngIf="kpis.length === 0">
+          There are no KPIs available yet. Contact your administrator to create
+          KPIs.
+        </p>
+        <p class="text-gray-500 mb-4" *ngIf="kpis.length > 0">
+          Click the settings button below to select which KPIs you want to
+          track.
+        </p>
+        <button
+          *ngIf="kpis.length > 0"
+          (click)="showConfig = true"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 inline mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          Select KPIs
+        </button>
+      </div>
+
+      <!-- Skeleton loaders while data is loading -->
+      <ng-container *ngIf="widgetsLoading && widgets.length > 0">
+        <div
+          *ngFor="let i of [1, 2, 3]"
+          class="widget bg-white rounded shadow animate-pulse"
+        >
+          <div class="widget-header">
+            <div class="h-6 bg-gray-300 rounded w-3/4"></div>
+          </div>
+          <div class="widget-content space-y-3">
+            <div class="h-4 bg-gray-200 rounded w-full"></div>
+            <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div class="h-10 bg-gray-200 rounded w-full mt-4"></div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Widget cards -->
+      <ng-container *ngIf="!widgetsLoading">
+        <div
+          *ngFor="let widget of widgets; let i = index"
+          class="widget bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+        >
+          <!-- Widget Header with Color Accent -->
+          <div
+            class="widget-header px-5 py-4 border-b"
+            [style.border-left]="'4px solid ' + kpiColors[i % kpiColors.length]"
+          >
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-800">
+                {{ widget.name }}
+              </h3>
+              <span
+                class="px-2 py-1 text-xs rounded-full font-medium"
+                [style.background-color]="
+                  kpiColors[i % kpiColors.length] + '20'
+                "
+                [style.color]="kpiColors[i % kpiColors.length]"
+              >
+                {{ widget.frequency }}
+              </span>
+            </div>
+            <p class="text-sm text-gray-500 mt-1 line-clamp-2">
+              {{ widget.description }}
+            </p>
           </div>
 
-          <div class="chart-container">
-            <!-- <canvas #kpiChart [id]="'kpiChart-' + i"></canvas> -->
+          <div class="widget-content p-5">
+            <!-- Loading state for individual widget -->
+            <div
+              *ngIf="widget.isLoading"
+              class="flex flex-col items-center justify-center py-8"
+            >
+              <div
+                class="animate-spin rounded-full h-10 w-10 border-4 border-gray-200"
+                [style.border-top-color]="kpiColors[i % kpiColors.length]"
+              ></div>
+              <span class="mt-3 text-gray-500 text-sm">Loading data...</span>
+            </div>
+
+            <!-- KPI Stats Section -->
+            <div *ngIf="!widget.isLoading" class="space-y-4">
+              <!-- Current Value Display -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                    Current Value
+                  </p>
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-800">
+                      {{
+                        widget.inputValue !== undefined
+                          ? widget.inputValue
+                          : "--"
+                      }}
+                    </span>
+                    <span class="text-sm text-gray-500">{{ widget.unit }}</span>
+                  </div>
+                </div>
+                <!-- Trend Indicator -->
+                <div
+                  *ngIf="getKpiTrend(widget.kpiId) as trend"
+                  class="flex flex-col items-end"
+                >
+                  <div
+                    class="flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium"
+                    [class.bg-green-100]="trend.direction === 'up'"
+                    [class.text-green-700]="trend.direction === 'up'"
+                    [class.bg-red-100]="trend.direction === 'down'"
+                    [class.text-red-700]="trend.direction === 'down'"
+                    [class.bg-gray-100]="trend.direction === 'stable'"
+                    [class.text-gray-600]="trend.direction === 'stable'"
+                  >
+                    <svg
+                      *ngIf="trend.direction === 'up'"
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 10l7-7m0 0l7 7m-7-7v18"
+                      />
+                    </svg>
+                    <svg
+                      *ngIf="trend.direction === 'down'"
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                      />
+                    </svg>
+                    <svg
+                      *ngIf="trend.direction === 'stable'"
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 12h14"
+                      />
+                    </svg>
+                    <span>{{ trend.percentage }}%</span>
+                  </div>
+                  <span class="text-xs text-gray-400 mt-1">vs last period</span>
+                </div>
+              </div>
+
+              <!-- Target Progress Bar -->
+              <div *ngIf="widget.target && widget.target !== 0" class="mt-4">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-xs text-gray-500">Progress to Target</span>
+                  <span class="text-xs font-medium text-gray-700">
+                    {{ getProgressPercentage(widget) }}%
+                  </span>
+                </div>
+                <div
+                  class="w-full bg-gray-200 rounded-full h-2 overflow-hidden"
+                >
+                  <div
+                    class="h-2 rounded-full transition-all duration-500"
+                    [style.width.%]="getProgressPercentage(widget)"
+                    [style.background-color]="kpiColors[i % kpiColors.length]"
+                  ></div>
+                </div>
+                <div class="flex justify-between mt-1">
+                  <span class="text-xs text-gray-400">0</span>
+                  <span class="text-xs text-gray-400"
+                    >Target: {{ widget.target }} {{ widget.unit }}</span
+                  >
+                </div>
+              </div>
+
+              <!-- Mini Sparkline Chart -->
+              <div class="mt-4 h-16 relative">
+                <canvas #kpiChart [id]="'kpiChart-' + widget.kpiId"></canvas>
+              </div>
+
+              <!-- Value Input Section -->
+              <div class="mt-4 pt-4 border-t border-gray-100">
+                <div
+                  *ngIf="!widget.inputSaved; else savedValue"
+                  class="space-y-2"
+                >
+                  <label
+                    class="block text-xs text-gray-500 uppercase tracking-wide"
+                  >
+                    Enter New Value
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                      <input
+                        type="number"
+                        [(ngModel)]="widget.inputValue"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                        placeholder="Enter value"
+                      />
+                      <span
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+                      >
+                        {{ widget.unit }}
+                      </span>
+                    </div>
+                    <button
+                      (click)="saveInput(widget)"
+                      [disabled]="
+                        widget.inputValue === null ||
+                        widget.inputValue === undefined
+                      "
+                      class="px-5 py-2.5 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                      [style.background-color]="kpiColors[i % kpiColors.length]"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+                <ng-template #savedValue>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <span
+                        class="text-xs text-gray-500 uppercase tracking-wide block mb-1"
+                        >Saved Value</span
+                      >
+                      <span class="text-xl font-semibold text-gray-800">
+                        {{ widget.inputValue }} {{ widget.unit }}
+                      </span>
+                    </div>
+                    <button
+                      (click)="editInput(widget)"
+                      class="px-4 py-2 rounded-lg font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                      Edit
+                    </button>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
           </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Dashboard Config Modal -->
+  <div
+    class="config-modal-backdrop"
+    *ngIf="showConfig"
+    (click)="showConfig = false"
+  ></div>
+  <div class="config-modal" *ngIf="showConfig">
+    <div
+      class="config-panel bg-gray-100 p-4 rounded shadow"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold">Dashboard Configuration</h3>
+        <button
+          (click)="showConfig = false"
+          class="close-btn"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+      </div>
+      <p class="text-sm text-gray-600 mb-4">Filter KPIs to display</p>
+      <div class="config-list">
+        <div
+          *ngFor="let kpi of kpis; let i = index"
+          class="config-item bg-white rounded p-2 mb-2"
+        >
+          <input
+            type="checkbox"
+            [checked]="isKpiSelected(kpi.name)"
+            (change)="toggleKpi(kpi.name)"
+            class="mr-2"
+          />
+          <span>{{ kpi.name }}</span>
         </div>
       </div>
     </div>
   </div>
-</div>
 
+  <div class="floating-buttons">
+    <!-- Floating Settings Button -->
+    <button
+      class="floating-settings-btn"
+      (click)="showConfig = true"
+      aria-label="Dashboard Settings"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-7 w-7"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.03-2.11l1.42-1.42a1 1 0 0 0 0-1.41l-1.42-1.42a1 1 0 0 0-.71-.29h-2.02a7.03 7.03 0 0 0-.54-1.3l.96-1.66a1 1 0 0 0-.26-1.32l-1.66-.96a1 1 0 0 0-1.32.26l-.96 1.66a7.03 7.03 0 0 0-1.3-.54V4.7a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2.02a7.03 7.03 0 0 0-1.3.54l-.96-1.66a1 1 0 0 0-1.32-.26l-1.66.96a1 1 0 0 0-.26 1.32l.96 1.66a7.03 7.03 0 0 0-.54 1.3H4.7a1 1 0 0 0-1 1v2c0 .55.45 1 1 1h2.02c.12.45.29.88.54 1.3l-.96 1.66a1 1 0 0 0 .26 1.32l1.66.96a1 1 0 0 0 1.32-.26l.96-1.66c.42.25.85.42 1.3.54v2.02c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2.02c.45-.12.88-.29 1.3-.54l.96 1.66a1 1 0 0 0 1.32.26l1.66-.96a1 1 0 0 0 .26-1.32l-.96-1.66c.25-.42.42-.85.54-1.3h2.02c.27 0 .52-.11.71-.29z"
+        />
+      </svg>
+    </button>
 
-
-<!-- Dashboard Config Modal -->
-<div class="config-modal-backdrop" *ngIf="showConfig" (click)="showConfig = false"></div>
-<div class="config-modal" *ngIf="showConfig">
-  <div class="config-panel bg-gray-100 p-4 rounded shadow" (click)="$event.stopPropagation()">
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="text-lg font-semibold">Dashboard Configuration</h3>
-      <button (click)="showConfig = false" class="close-btn" aria-label="Close">&times;</button>
-    </div>
-    <p class="text-sm text-gray-600 mb-4">Filter KPIs to display</p>
-    <div class="config-list">
-      <div *ngFor="let kpi of kpis; let i = index" class="config-item bg-white rounded p-2 mb-2">
-        <input type="checkbox" [checked]="isKpiSelected(kpi.name)" (change)="toggleKpi(kpi.name)" class="mr-2">
-        <span>{{ kpi.name }}</span>
-      </div>
-    </div>
+    <button
+      class="floating-download-btn"
+      (click)="downloadMyKpiReport()"
+      aria-label="Download My KPI Report"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-7 w-7"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 10l5 5 5-5M12 15V3"
+        />
+      </svg>
+    </button>
   </div>
 </div>
-
-<div class="floating-buttons">
-  <!-- Floating Settings Button -->
-  <button class="floating-settings-btn" (click)="showConfig = true" aria-label="Dashboard Settings">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.03-2.11l1.42-1.42a1 1 0 0 0 0-1.41l-1.42-1.42a1 1 0 0 0-.71-.29h-2.02a7.03 7.03 0 0 0-.54-1.3l.96-1.66a1 1 0 0 0-.26-1.32l-1.66-.96a1 1 0 0 0-1.32.26l-.96 1.66a7.03 7.03 0 0 0-1.3-.54V4.7a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2.02a7.03 7.03 0 0 0-1.3.54l-.96-1.66a1 1 0 0 0-1.32-.26l-1.66.96a1 1 0 0 0-.26 1.32l.96 1.66a7.03 7.03 0 0 0-.54 1.3H4.7a1 1 0 0 0-1 1v2c0 .55.45 1 1 1h2.02c.12.45.29.88.54 1.3l-.96 1.66a1 1 0 0 0 .26 1.32l1.66.96a1 1 0 0 0 1.32-.26l.96-1.66c.42.25.85.42 1.3.54v2.02c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2.02c.45-.12.88-.29 1.3-.54l.96 1.66a1 1 0 0 0 1.32.26l1.66-.96a1 1 0 0 0 .26-1.32l-.96-1.66c.25-.42.42-.85.54-1.3h2.02c.27 0 .52-.11.71-.29z" />
-    </svg>
-  </button>
-  <!-- Floating Combined Chart Button -->
-  <button class="floating-chart-btn" (click)="showCombinedChart = true" aria-label="Show Combined KPI Chart">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M3 17v-2a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  </button>
-  
-  <button class="floating-download-btn" (click)="downloadMyKpiReport()" aria-label="Download My KPI Report">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 10l5 5 5-5M12 15V3" />
-    </svg>
-  </button>
-</div>
-
-<!-- Combined KPI Performance Chart Modal -->
-<div *ngIf="showCombinedChart" (click)="showCombinedChart = false"></div>
-<div class="config-modal-chart" *ngIf="showCombinedChart">
-  <div (click)="$event.stopPropagation()">
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="text-lg font-semibold">All KPI Performance Overview</h3>
-      <button (click)="showCombinedChart = false" class="close-btn" aria-label="Close">&times;</button>
-    </div>
-    <div style="height: 450px; width: 850px;">
-      <canvas #combinedKpiChart id="combinedKpiChart"></canvas>
-    </div>
-  </div>
-</div>
-
-

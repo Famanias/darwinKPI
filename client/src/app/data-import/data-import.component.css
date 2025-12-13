@@ -1,64 +1,65 @@
 .data-import-container {
   height: 100%;
-  min-height: 50vh;
+  min-height: 100vh;
   background-color: #f8fafc;
   padding: 2rem;
 }
 
-.content-wrapper {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  max-width: 100%;
-  margin: 0 auto;
-  background-color: #f8fafc;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+/* Scrollbar styling for KPI list */
+.max-h-80::-webkit-scrollbar {
+  width: 6px;
 }
 
-.upload-section {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.max-h-80::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
 }
 
-.upload-section > div {
-  width: 100%;
-  max-width: 100%;
-  min-height: 300px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.max-h-80::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
 }
 
-.progress-section {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+.max-h-80::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
 }
 
-.message-section {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.button-section {
-  display: flex;
-  justify-content: center;
-  padding: 1rem 0;
-}
-
-
-.bg-blue-500 {
-  transition: width 0.2s ease-in-out;
-}
-
-
+/* Upload zone drag hover state */
 .border-dashed:hover {
   border-color: #3b82f6;
-  background-color: #f8fafc;
-} 
+  background-color: #eff6ff;
+}
+
+/* Animation for file selection */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.border-blue-500 {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Progress bar animation */
+.bg-blue-500 {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .data-import-container {
+    padding: 1rem;
+  }
+}
+
+/* Mono font for code example */
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    monospace;
+}

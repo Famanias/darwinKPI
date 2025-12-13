@@ -1,22 +1,226 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');
+const authMiddleware = require("../middleware/auth");
 
-// Get performance data for a user (accessible to Admin, Analyst, and the user themselves)
-router.get('/:userId', authMiddleware(['Admin', 'Analyst','User']), async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const db = req.app.locals.db;
-    const [rows] = await db.execute(
-      'SELECT * FROM performance_data WHERE user_id = ?',
-      [userId]
-    );
-    res.status(200).json(rows);
-  } catch (err) {
-    console.error('Error fetching performance data:', err);
-    res.status(500).json({ message: 'Failed to fetch performance data', error: 'Database error' });
+// IMPORTANT: Static routes must come BEFORE parameterized routes!
+
+// Get all performance data (for dashboard visualizations)
+router.get(
+  "/all",
+  authMiddleware(["Admin", "Analyst", "User"]),
+  async (req, res) => {
+    try {
+      const db = req.app.locals.db;
+      const rows = await new Promise((resolve, reject) => {
+        db.all(
+          "SELECT * FROM performance_data ORDER BY date DESC",
+          [],
+          (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          }
+        );
+      });
+      res.status(200).json(rows);
+    } catch (err) {
+      console.error("Error fetching all performance data:", err);
+      res.status(500).json({
+        message: "Failed to fetch performance data",
+        error: err.message,
+      });
+    }
   }
-});
+);
+
+// Get performance value for a specific KPI/period (shared across all users)
+router.get(
+  "/value",
+  authMiddleware(["Admin", "Analyst", "User"]),
+  async (req, res) => {
+    const { kpiId, frequency, date } = req.query;
+
+    console.log("GET /value - Received params:", {
+      kpiId,
+      frequency,
+      date,
+    });
+
+    if (!kpiId || !frequency || !date) {
+      return res.status(400).json({
+        message: "kpiId, frequency, and date are required",
+      });
+    }
+
+    try {
+      const db = req.app.locals.db;
+      const freq = (frequency || "").toLowerCase();
+      const now = new Date(date);
+
+      let query =
+        "SELECT value, date FROM performance_data WHERE kpi_id = ? AND ";
+      let params = [Number(kpiId)];
+
+      if (freq === "daily") {
+        const periodStart = now.toISOString().slice(0, 10);
+        query += "date = ?";
+        params.push(periodStart);
+      } else if (freq === "monthly") {
+        query += "strftime('%Y', date) = ? AND strftime('%m', date) = ?";
+        params.push(
+          String(now.getFullYear()),
+          String(now.getMonth() + 1).padStart(2, "0")
+        );
+      } else if (freq === "quarterly") {
+        const quarter = Math.floor(now.getMonth() / 3) + 1;
+        query +=
+          "strftime('%Y', date) = ? AND CAST((CAST(strftime('%m', date) AS INTEGER) - 1) / 3 AS INTEGER) + 1 = ?";
+        params.push(String(now.getFullYear()), quarter);
+      } else if (freq === "yearly") {
+        query += "strftime('%Y', date) = ?";
+        params.push(String(now.getFullYear()));
+      } else if (freq === "weekly") {
+        // For weekly, check if the date falls within the same week
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        query += "date >= ? AND date <= ?";
+        params.push(
+          startOfWeek.toISOString().slice(0, 10),
+          endOfWeek.toISOString().slice(0, 10)
+        );
+      } else {
+        const periodStart = now.toISOString().slice(0, 10);
+        query += "date = ?";
+        params.push(periodStart);
+      }
+
+      query += " ORDER BY id DESC LIMIT 1";
+
+      console.log("Executing query:", query);
+      console.log("With params:", params);
+
+      const row = await new Promise((resolve, reject) => {
+        db.get(query, params, (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+
+      console.log("Query result:", row);
+
+      if (row && row.value !== null && row.value !== undefined) {
+        res.status(200).json({ value: row.value });
+      } else {
+        res.status(200).json({ value: null });
+      }
+    } catch (err) {
+      console.error("Error fetching performance value:", err);
+      res.status(500).json({
+        message: "Failed to fetch performance value",
+        error: err.message,
+      });
+    }
+  }
+);
+
+// Add or update a performance value for a KPI/period (shared across all users)
+router.post(
+  "/upsert",
+  authMiddleware(["User", "Admin", "Analyst"]),
+  async (req, res) => {
+    const { user_id, kpi_id, value } = req.body;
+    let frequency = req.body.frequency;
+    let date = req.body.date || new Date();
+
+    const freq = (frequency || "").toLowerCase();
+    const now = new Date(date);
+    const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    try {
+      const db = req.app.locals.db;
+
+      // Build query to find existing record for this KPI and period (shared data)
+      let query = "SELECT id FROM performance_data WHERE kpi_id = ? AND ";
+      let params = [kpi_id];
+
+      if (freq === "daily") {
+        query += "date = ?";
+        params.push(dateStr);
+      } else if (freq === "monthly") {
+        query += "strftime('%Y', date) = ? AND strftime('%m', date) = ?";
+        params.push(
+          String(now.getFullYear()),
+          String(now.getMonth() + 1).padStart(2, "0")
+        );
+      } else if (freq === "quarterly") {
+        const quarter = Math.floor(now.getMonth() / 3) + 1;
+        query +=
+          "strftime('%Y', date) = ? AND CAST((CAST(strftime('%m', date) AS INTEGER) - 1) / 3 AS INTEGER) + 1 = ?";
+        params.push(String(now.getFullYear()), quarter);
+      } else if (freq === "yearly") {
+        query += "strftime('%Y', date) = ?";
+        params.push(String(now.getFullYear()));
+      } else if (freq === "weekly") {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        query += "date >= ? AND date <= ?";
+        params.push(
+          startOfWeek.toISOString().slice(0, 10),
+          endOfWeek.toISOString().slice(0, 10)
+        );
+      } else {
+        query += "date = ?";
+        params.push(dateStr);
+      }
+
+      console.log("Upsert check query:", query, params);
+
+      // Check if record exists
+      const existing = await new Promise((resolve, reject) => {
+        db.get(query, params, (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+
+      if (existing) {
+        // Update existing record
+        await new Promise((resolve, reject) => {
+          db.run(
+            "UPDATE performance_data SET value = ?, date = ? WHERE id = ?",
+            [value, dateStr, existing.id],
+            function (err) {
+              if (err) reject(err);
+              else resolve(this);
+            }
+          );
+        });
+        console.log("Updated existing record:", existing.id);
+      } else {
+        // Insert new record
+        await new Promise((resolve, reject) => {
+          db.run(
+            "INSERT INTO performance_data (user_id, kpi_id, value, date) VALUES (?, ?, ?, ?)",
+            [user_id, kpi_id, value, dateStr],
+            function (err) {
+              if (err) reject(err);
+              else resolve(this);
+            }
+          );
+        });
+        console.log("Inserted new record");
+      }
+
+      res.status(200).json({ success: true });
+    } catch (err) {
+      console.error("Upsert error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 // Add performance data (accessible to Admin and Analyst)
 router.post(
@@ -26,158 +230,67 @@ router.post(
     const { kpi_id, user_id, value, date } = req.body;
     try {
       if (!kpi_id || !user_id || !value || !date) {
-        return res
-          .status(400)
-          .json({ message: "kpi_id, user_id, value, and date are required" });
+        return res.status(400).json({
+          message: "kpi_id, user_id, value, and date are required",
+        });
       }
 
       const db = req.app.locals.db;
-      const [result] = await db.execute(
-        "INSERT INTO performance_data (kpi_id, user_id, value, date) VALUES (?, ?, ?, ?)",
-        [kpi_id, user_id, value, date]
-      );
+      const dateStr = new Date(date).toISOString().slice(0, 10);
+
+      const result = await new Promise((resolve, reject) => {
+        db.run(
+          "INSERT INTO performance_data (kpi_id, user_id, value, date) VALUES (?, ?, ?, ?)",
+          [kpi_id, user_id, value, dateStr],
+          function (err) {
+            if (err) reject(err);
+            else resolve({ insertId: this.lastID });
+          }
+        );
+      });
 
       res
         .status(201)
-        .json({ id: result.insertId, kpi_id, user_id, value, date });
+        .json({ id: result.insertId, kpi_id, user_id, value, date: dateStr });
     } catch (err) {
       console.error("Error adding performance data:", err);
       res.status(500).json({
         message: "Failed to add performance data",
-        error: "Database error",
+        error: err.message,
       });
     }
   }
 );
 
-// Get all performance data (for dashboard visualizations)
-router.get('/all', authMiddleware(['Admin', 'Analyst', 'User']), async (req, res) => {
-  try {
-    const db = req.app.locals.db;
-    console.log('Database connection successful');
-    
-    const [rows] = await db.execute('SELECT * FROM performance_data');
-    console.log('Query successful, rows:', rows);
-    
-    res.status(200).json(rows);
-  } catch (err) {
-    console.error('Detailed error:', {
-      message: err.message,
-      code: err.code,
-      sqlMessage: err.sqlMessage,
-      sqlState: err.sqlState
-    });
-    res.status(500).json({ 
-      message: 'Failed to fetch performance data', 
-      error: err.message,
-      details: {
-        code: err.code,
-        sqlMessage: err.sqlMessage
-      }
-    });
-  }
-});
+// Get performance data for a user - MUST BE LAST (parameterized route)
+router.get(
+  "/:userId",
+  authMiddleware(["Admin", "Analyst", "User"]),
+  async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const db = req.app.locals.db;
 
-// Add or update a performance value for a user/KPI/period
-router.post('/upsert', authMiddleware(['User', 'Admin', 'Analyst']), async (req, res) => {
-  const { user_id, kpi_id, value } = req.body;
-  let frequency = req.body.frequency;
-  let date = req.body.date || new Date();
+      const rows = await new Promise((resolve, reject) => {
+        db.all(
+          "SELECT * FROM performance_data WHERE user_id = ?",
+          [userId],
+          (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          }
+        );
+      });
 
-  // Make frequency case-insensitive
-  const freq = (frequency || '').toLowerCase();
-
-  // Calculate period start date based on frequency
-  const now = new Date(date);
-  let periodStart;
-  if (freq === 'daily') {
-    periodStart = now.toISOString().slice(0, 10); // YYYY-MM-DD
-  } else if (freq === 'monthly') {
-    periodStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  } else if (freq === 'quarterly') {
-    const quarter = Math.floor(now.getMonth() / 3) + 1;
-    periodStart = `${now.getFullYear()}-Q${quarter}`;
-  } else if (freq === 'yearly') {
-    periodStart = `${now.getFullYear()}-01-01`;
-  } else {
-    periodStart = now.toISOString().slice(0, 10);
-  }
-
-  try {
-    const db = req.app.locals.db;
-    // For daily/monthly/yearly, match on date (or period)
-    let query = 'SELECT id FROM performance_data WHERE user_id = ? AND kpi_id = ? AND ';
-    let params = [user_id, kpi_id];
-
-    if (freq === 'daily') {
-      query += 'DATE(date) = ?';
-      params.push(periodStart);
-    } else if (freq === 'monthly') {
-      query += 'YEAR(date) = ? AND MONTH(date) = ?';
-      params.push(now.getFullYear(), now.getMonth() + 1);
-    } else if (freq === 'quarterly') {
-      const quarter = Math.floor(now.getMonth() / 3) + 1;
-      query += 'YEAR(date) = ? AND QUARTER(date) = ?';
-      params.push(now.getFullYear(), quarter);
-    } else if (freq === 'yearly') {
-      query += 'YEAR(date) = ?';
-      params.push(now.getFullYear());
-    } else {
-      query += 'DATE(date) = ?';
-      params.push(periodStart);
+      res.status(200).json(rows);
+    } catch (err) {
+      console.error("Error fetching performance data:", err);
+      res.status(500).json({
+        message: "Failed to fetch performance data",
+        error: err.message,
+      });
     }
-
-    console.log('Query:', query, params);
-
-    const [existing] = await db.execute(query, params);
-
-    if (existing.length > 0) {
-      // Update
-      await db.execute('UPDATE performance_data SET value = ?, date = ? WHERE id = ?', [value, now, existing[0].id]);
-    } else {
-      // Insert
-      await db.execute('INSERT INTO performance_data (user_id, kpi_id, value, date) VALUES (?, ?, ?, ?)', [user_id, kpi_id, value, now]);
-    }
-    res.status(200).json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
-
-// Fetch a user's value for a KPI and period (daily/monthly/quarterly/yearly)
-router.get('/value', authMiddleware(['User', 'Admin', 'Analyst']), async (req, res) => {
-  const { userId, kpiId } = req.query;
-  let frequency = req.query.frequency;
-  const now = req.query.date ? new Date(req.query.date) : new Date();
-  // Make frequency case-insensitive
-  const freq = (frequency || '').toLowerCase();
-  let query = 'SELECT * FROM performance_data WHERE user_id = ? AND kpi_id = ? AND ';
-  let params = [userId, kpiId];
-
-  if (freq === 'daily') {
-    query += 'DATE(date) = ?';
-    params.push(now.toISOString().slice(0, 10));
-  } else if (freq === 'monthly') {
-    query += 'YEAR(date) = ? AND MONTH(date) = ?';
-    params.push(now.getFullYear(), now.getMonth() + 1);
-  } else if (freq === 'quarterly') {
-    const quarter = Math.floor(now.getMonth() / 3) + 1;
-    query += 'YEAR(date) = ? AND QUARTER(date) = ?';
-    params.push(now.getFullYear(), quarter);
-  } else if (freq === 'yearly') {
-    query += 'YEAR(date) = ?';
-    params.push(now.getFullYear());
-  } else {
-    query += 'DATE(date) = ?';
-    params.push(now.toISOString().slice(0, 10));
-  }
-
-  // Always fetch the latest value for the period
-  query += ' ORDER BY date DESC LIMIT 1';
-
-  const db = req.app.locals.db;
-  const [rows] = await db.execute(query, params);
-  res.json(rows[0] || null);
-});
+);
 
 module.exports = router;

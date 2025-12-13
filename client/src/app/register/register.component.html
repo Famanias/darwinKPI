@@ -1,36 +1,86 @@
 <div class="flex min-h-screen flex-col items-center justify-center py-12">
-    <div class="container flex flex-col items-center justify-center">
-      <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-        <div class="flex flex-col space-y-2 text-center">
-          <h1 class="text-2xl font-semibold tracking-tight">Register for Darwin KPI</h1>
-          <p class="text-sm text-gray-500">Create an account to get started</p>
-        </div>
-        <div class="card">
-          <div class="card border border-grey-400 rounded-lg p-4">
-            <form (ngSubmit)="onSubmit()">
-              <div class="grid gap-4">
-                <div class="grid gap-2">
-                  <label for="email" class="block text-sm font-medium">Email</label>
-                  <input id="email" type="email" placeholder="name@example.com" required class="w-full p-2 border rounded" [(ngModel)]="email" name="email"/>
-                </div>
-                <div class="grid gap-2">
-                  <label for="password" class="block text-sm font-medium">Password</label>
-                  <input id="password" type="password" required class="w-full p-2 border rounded" [(ngModel)]="password" name="password"/>
-                </div>
-                <div class="grid gap-2">
-                  <label for="confirm-password" class="block text-sm font-medium">Confirm Password</label>
-                  <input id="confirm-password" type="password" required class="w-full p-2 border rounded" [(ngModel)]="confirmPassword" name="confirmPassword"/>
-                </div>
-                <button type="submit" class="w-full bg-black text-white rounded px-4 py-2 hover:bg-gray-800">Register</button>
+  <div class="container flex flex-col items-center justify-center">
+    <div
+      class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+    >
+      <div class="flex flex-col space-y-2 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight">
+          Register for Darwin KPI
+        </h1>
+        <p class="text-sm text-gray-500">Create an account to get started</p>
+      </div>
+      <div class="card">
+        <div class="card border border-grey-400 rounded-lg p-4">
+          <!-- Error message display -->
+          <form (ngSubmit)="onSubmit()">
+            <div class="grid gap-4">
+              <div class="grid gap-2">
+                <label for="email" class="block text-sm font-medium"
+                  >Email</label
+                >
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  required
+                  class="w-full p-2 border rounded"
+                  [(ngModel)]="email"
+                  name="email"
+                />
               </div>
-            </form>
-          </div>
-          <div class="card-footer flex flex-col">
-            <div class="mt-2 text-center text-sm">
-              Already have an account? <a (click)="navigateToLogin()" class="text-blue-600 underline">Login</a> 
+              <div class="grid gap-2">
+                <label for="password" class="block text-sm font-medium"
+                  >Password</label
+                >
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  class="w-full p-2 border rounded"
+                  [(ngModel)]="password"
+                  name="password"
+                />
+                <p class="text-xs text-gray-500 mt-1">
+                  Must be at least 8 characters long
+                </p>
+              </div>
+              <div class="grid gap-2">
+                <label for="confirm-password" class="block text-sm font-medium"
+                  >Confirm Password</label
+                >
+                <input
+                  id="confirm-password"
+                  type="password"
+                  required
+                  class="w-full p-2 border rounded"
+                  [(ngModel)]="confirmPassword"
+                  name="confirmPassword"
+                />
+              </div>
+              <div
+                *ngIf="error"
+                class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"
+              >
+                {{ error }}
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-black text-white rounded px-4 py-2 hover:bg-gray-800"
+              >
+                Register
+              </button>
             </div>
+          </form>
+        </div>
+        <div class="card-footer flex flex-col">
+          <div class="mt-2 text-center text-sm">
+            Already have an account?
+            <a (click)="navigateToLogin()" class="text-blue-600 underline"
+              >Login</a
+            >
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
