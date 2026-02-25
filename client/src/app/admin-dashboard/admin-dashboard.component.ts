@@ -62,6 +62,10 @@ export class AdminDashboardComponent {
     return user ? user.name : 'Unknown User';
   }
 
+  getAdminCount(): number {
+    return this.users.filter((u) => u.role === 'Admin').length;
+  }
+
   convertDateWithTime(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {

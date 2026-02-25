@@ -1,114 +1,62 @@
-<nav class="bg-gray-800 text-white" *ngIf="isLoggedIn()">
+﻿<nav *ngIf="isLoggedIn()">
   <div class="container">
-    <!-- Logo and Title Section -->
+    <!-- Brand -->
     <div class="brand-section">
       <div class="logo">
         <img src="darwinKPI.png" alt="Darwin KPI Logo" class="logo-image" />
       </div>
-      <h1 class="app-title">Darwin KPI</h1>
+      <h1 class="app-title">Darwin<span style="color:#93c5fd">KPI</span></h1>
     </div>
 
-    <!-- Organization Badge -->
-    <div *ngIf="organizationName" class="px-3 py-2 mx-2 bg-gray-700 rounded-lg">
-      <span class="text-xs text-gray-400 uppercase tracking-wide"
-        >Organization</span
-      >
-      <p
-        class="text-sm font-medium text-white truncate max-w-[150px]"
-        [title]="organizationName"
-      >
-        {{ organizationName }}
-      </p>
+    <!-- Organisation badge -->
+    <div *ngIf="organizationName" class="org-badge">
+      <span class="org-badge-label">Organisation</span>
+      <span class="org-badge-name" [title]="organizationName">{{ organizationName }}</span>
     </div>
 
-    <div class="nav-links">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="bg-blue-600"
-        class="hover:text-gray-300"
-      >
-        <i class="fas fa-tachometer-alt mr-3"></i>
-        Dashboard
+    <!-- Nav links -->
+    <div class="nav-links" style="padding-top:.75rem">
+      <a routerLink="/dashboard" routerLinkActive="bg-blue-600">
+        <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
       </a>
 
-      <a
-        routerLink="/data-import"
-        routerLinkActive="bg-blue-600"
-        class="hover:text-gray-300"
-      >
-        <i class="fas fa-file-import mr-3"></i>
-        Data Import
+      <a routerLink="/data-import" routerLinkActive="bg-blue-600">
+        <i class="fas fa-file-import mr-3"></i>Data Import
       </a>
 
-      <!-- Admin only links -->
+      <a routerLink="/analytics" routerLinkActive="bg-blue-600">
+        <i class="fas fa-chart-bar mr-3"></i>Analytics
+      </a>
+
+      <!-- Admin only -->
       @if (hasRole('Admin')) {
-      <a
-        routerLink="/admin-dashboard"
-        routerLinkActive="bg-blue-600"
-        class="hover:text-gray-300"
-      >
-        <i class="fas fa-user-shield mr-3"></i>
-        Admin Dashboard
+      <div class="nav-section-label">Admin</div>
+      <a routerLink="/admin-dashboard" routerLinkActive="bg-blue-600">
+        <i class="fas fa-user-shield mr-3"></i>Admin Dashboard
       </a>
-      <a
-        routerLink="/user-management"
-        routerLinkActive="bg-blue-600"
-        class="hover:text-gray-300"
-      >
-        <i class="fas fa-users-cog mr-3"></i>
-        User Management
+      <a routerLink="/user-management" routerLinkActive="bg-blue-600">
+        <i class="fas fa-users-cog mr-3"></i>User Management
       </a>
       }
 
-      <!-- Admin and Analyst links -->
+      <!-- Admin + Analyst -->
       @if (hasRole('Admin') || hasRole('Analyst')) {
-      <a
-        routerLink="/kpi-management"
-        routerLinkActive="bg-blue-600"
-        class="hover:text-gray-300"
-      >
-        <i class="fas fa-chart-line mr-3"></i>
-        KPI Management
+      <a routerLink="/kpi-management" routerLinkActive="bg-blue-600">
+        <i class="fas fa-chart-line mr-3"></i>KPI Management
       </a>
       }
 
-      <!-- Analytics - available to all users -->
-      <a
-        routerLink="/analytics"
-        routerLinkActive="bg-blue-600"
-        class="hover:text-gray-300"
-      >
-        <i class="fas fa-chart-bar mr-3"></i>
-        Analytics
-      </a>
-
-      <!-- Organization Settings (all logged in users) -->
-      <a
-        routerLink="/organization"
-        routerLinkActive="bg-blue-600"
-        class="hover:text-gray-300"
-      >
-        <i class="fas fa-building mr-3"></i>
-        Organization
+      <a routerLink="/organization" routerLinkActive="bg-blue-600">
+        <i class="fas fa-building mr-3"></i>Organisation
       </a>
     </div>
 
-    <div class="nav-links mt-auto">
-      <!-- User Info -->
+    <!-- User info + logout -->
+    <div class="nav-links mt-auto" style="padding-bottom:.75rem">
       <div class="user-info-section" *ngIf="userName">
         <div class="user-avatar">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
         <div class="user-details">
@@ -116,10 +64,8 @@
           <span class="user-role">{{ userRole }}</span>
         </div>
       </div>
-
       <button (click)="logout()" class="hover:text-gray-300 text-red-400">
-        <i class="fas fa-sign-out-alt mr-3"></i>
-        Logout
+        <i class="fas fa-sign-out-alt mr-3"></i>Logout
       </button>
     </div>
   </div>

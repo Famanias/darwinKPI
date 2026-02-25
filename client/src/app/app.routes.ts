@@ -13,6 +13,9 @@ import { UserManagementComponent } from './user-management/user-management.compo
 import { KpiManagementComponent } from './kpi-management/kpi-management.component';
 import { DataImportComponent } from './data-import/data-import.component';
 import { OrganizationSettingsComponent } from './organization-settings/organization-settings.component';
+import { TermsComponent } from './terms/terms.component';
+import { PrivacyComponent } from './privacy/privacy.component';
+import { ContactComponent } from './contact/contact.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -60,5 +63,8 @@ export const routes: Routes = [
     data: { roles: ['User', 'Admin', 'Analyst'] },
   },
   { path: '', component: WelcomeComponent },
+  { path: 'terms', component: TermsComponent },
+  { path: 'privacy', component: PrivacyComponent },
+  { path: 'contact', component: ContactComponent },
   { path: '**', redirectTo: '' }, // Wildcard route for 404
 ];

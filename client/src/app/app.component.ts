@@ -49,16 +49,17 @@ import { filter } from 'rxjs/operators';
 
       .auth-container {
         display: flex;
+        flex-direction: column;
         min-height: 100vh;
+        width: 100%;
       }
 
       .auth-content {
         flex: 1;
         display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        background-color: #f7fafc;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
       }
 
       @media (max-width: 768px) {
@@ -98,7 +99,10 @@ export class AppComponent implements OnInit {
           !this.authService.isLoggedIn() &&
           currentPath !== '/login' &&
           currentPath !== '/register' &&
-          currentPath !== '/'
+          currentPath !== '/' &&
+          currentPath !== '/terms' &&
+          currentPath !== '/privacy' &&
+          currentPath !== '/contact'
         ) {
           this.router.navigate(['/login']);
         }
