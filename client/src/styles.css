@@ -598,6 +598,15 @@ body {
 .landing-logo-text { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
 .landing-logo-text strong { color: #2563eb; }
 
+/* ── Shared landing container (used by welcome, docs, terms, privacy, contact footers) ── */
+.landing-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
 /* ── Shared site footer ───────────────────────────────────────────────────── */
 .landing-footer {
   width: 100%;
@@ -608,7 +617,7 @@ body {
 }
 .footer-top {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 3rem;
   padding-bottom: 2.5rem;
   border-bottom: 1px solid rgba(255,255,255,.08);

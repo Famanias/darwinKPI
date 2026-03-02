@@ -11,15 +11,6 @@
   overflow-x: hidden;
 }
 
-/* ── Shared container ─────────────────────────────────────────────────────── */
-.landing-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  box-sizing: border-box;
-}
-
 /* ── Nav ──────────────────────────────────────────────────────────────────── */
 .landing-nav {
   position: sticky;

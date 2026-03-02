@@ -102,7 +102,8 @@ export class AppComponent implements OnInit {
           currentPath !== '/' &&
           currentPath !== '/terms' &&
           currentPath !== '/privacy' &&
-          currentPath !== '/contact'
+          currentPath !== '/contact' &&
+          currentPath !== '/docs'
         ) {
           this.router.navigate(['/login']);
         }

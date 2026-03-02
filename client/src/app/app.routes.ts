@@ -16,6 +16,7 @@ import { OrganizationSettingsComponent } from './organization-settings/organizat
 import { TermsComponent } from './terms/terms.component';
 import { PrivacyComponent } from './privacy/privacy.component';
 import { ContactComponent } from './contact/contact.component';
+import { DocsComponent } from './docs/docs.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -66,5 +67,6 @@ export const routes: Routes = [
   { path: 'terms', component: TermsComponent },
   { path: 'privacy', component: PrivacyComponent },
   { path: 'contact', component: ContactComponent },
+  { path: 'docs', component: DocsComponent },
   { path: '**', redirectTo: '' }, // Wildcard route for 404
 ];
