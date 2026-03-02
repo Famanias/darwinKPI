@@ -170,7 +170,35 @@ There are two ways to create an account:
 1. Log in as an Admin.
 2. Go to **User Management**.
 3. Click **Add User**, fill in the details, and assign a role.
+
 4. The new user account is created immediately with a default password (`TempPass123!`) unless a custom password is specified.
+
+---
+
+## Demo Seed Accounts
+
+The repository includes a SQL seed file at [server/seed-supabase.sql](server/seed-supabase.sql) that populates a demo organization and users. Run that file in Supabase's SQL Editor to create a ready-to-use demo organization.
+
+Demo credentials (for local testing or the seeded Supabase database):
+
+- **Admin**
+  - Email: `admin@darwincorp.com`
+  - Password: `Admin123!`
+
+- **Analyst**
+  - Email: `analyst@darwincorp.com`
+  - Password: `Analyst123!`
+
+- **Regular Users**
+  - Email: `juan@darwincorp.com` / Password: `User123!`
+  - Email: `maria@darwincorp.com` / Password: `User123!`
+  - Email: `pedro@darwincorp.com` / Password: `User123!`
+
+Notes:
+
+- The seed script inserts an organization named **Darwin Corp** (invite code `DARWIN01`) and several KPIs, performance records (2024–2025), and activity logs. The first admin user (`admin@darwincorp.com`) is set as the organization's creator.
+- The seed file begins with a `TRUNCATE` that will wipe existing data. If you want to preserve existing tables, remove the `TRUNCATE` line before running the SQL.
+- After running the SQL in Supabase, log in using the Admin account and explore the Admin Dashboard, KPIs, and Analytics pages to see populated data.
 
 ---
 
