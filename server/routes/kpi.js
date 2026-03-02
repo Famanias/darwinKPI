@@ -89,7 +89,6 @@ router.post("/", authMiddleware(["Admin", "Analyst"]), async (req, res) => {
 
 // Update an existing KPI (accessible to Admin and Analyst)
 router.put("/:id", authMiddleware(["Admin", "Analyst"]), async (req, res) => {
-  console.log("PUT /api/kpis/:id reached", req.params.id);
   const { id } = req.params;
   const { name, description, unit, target, frequency, visualization } =
     req.body;

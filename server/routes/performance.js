@@ -45,12 +45,6 @@ router.get(
   async (req, res) => {
     const { kpiId, frequency, date } = req.query;
 
-    console.log("GET /value - Received params:", {
-      kpiId,
-      frequency,
-      date,
-    });
-
     if (!kpiId || !frequency || !date) {
       return res.status(400).json({
         message: "kpiId, frequency, and date are required",
@@ -107,17 +101,12 @@ router.get(
 
       query += " ORDER BY id DESC LIMIT 1";
 
-      console.log("Executing query:", query);
-      console.log("With params:", params);
-
       const row = await new Promise((resolve, reject) => {
         db.get(query, params, (err, row) => {
           if (err) reject(err);
           else resolve(row);
         });
       });
-
-      console.log("Query result:", row);
 
       if (row && row.value !== null && row.value !== undefined) {
         res.status(200).json({ value: row.value });
@@ -195,8 +184,6 @@ router.post(
         params.push(dateStr);
       }
 
-      console.log("Upsert check query:", query, params);
-
       // Check if record exists
       const existing = await new Promise((resolve, reject) => {
         db.get(query, params, (err, row) => {
@@ -217,7 +204,6 @@ router.post(
             }
           );
         });
-        console.log("Updated existing record:", existing.id);
       } else {
         // Insert new record with org_id
         await new Promise((resolve, reject) => {
@@ -230,7 +216,6 @@ router.post(
             }
           );
         });
-        console.log("Inserted new record");
       }
 
       res.status(200).json({ success: true });
