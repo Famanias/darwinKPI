@@ -172,63 +172,81 @@ const initializeSchema = async (pool) => {
 };
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-const initializeApp = async () => {
-  try {
+// ── Mount routes synchronously (safe at module load time) ───────────────────
+const authRoutes          = require("./routes/auth");
+const kpiRoutes           = require("./routes/kpi");
+const usersRoutes         = require("./routes/users");
+const performanceRoutes   = require("./routes/performance");
+const analyticsRoutes     = require("./routes/analytics");
+const logsRoutes          = require("./routes/logs");
+const importRoutes        = require("./routes/import");
+const downloadRoutes      = require("./routes/download");
+const organizationsRoutes = require("./routes/organizations");
+
+app.use("/api/auth",             authRoutes);
+app.use("/api/kpis",             kpiRoutes);
+app.use("/api/users",            usersRoutes);
+app.use("/api/performance-data", performanceRoutes);
+app.use("/api/analytics",        analyticsRoutes);
+app.use("/api/logs",             logsRoutes);
+app.use("/api/import",           importRoutes);
+app.use("/api/download",         downloadRoutes);
+app.use("/api/organizations",    organizationsRoutes);
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Something broke!" });
+});
+
+// ── Lazy DB initialisation ────────────────────────────────────────────────────
+// Runs once; subsequent calls return the cached promise.
+let _initPromise = null;
+const initializeApp = () => {
+  if (_initPromise) return _initPromise;
+  _initPromise = (async () => {
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === "production"
         ? { rejectUnauthorized: false }
         : false,
     });
-
-    await pool.query("SELECT 1"); // verify connection
+    await pool.query("SELECT 1");
     console.log("PostgreSQL connected");
-
     await initializeSchema(pool);
-
-    // Attach shim so routes call db.execute / db.allAsync / etc. unchanged
     app.locals.db = createDbShim(pool);
-
-    // Routes
-    const authRoutes          = require("./routes/auth");
-    const kpiRoutes           = require("./routes/kpi");
-    const usersRoutes         = require("./routes/users");
-    const performanceRoutes   = require("./routes/performance");
-    const analyticsRoutes     = require("./routes/analytics");
-    const logsRoutes          = require("./routes/logs");
-    const importRoutes        = require("./routes/import");
-    const downloadRoutes      = require("./routes/download");
-    const organizationsRoutes = require("./routes/organizations");
-
-    app.use("/api/auth",             authRoutes);
-    app.use("/api/kpis",             kpiRoutes);
-    app.use("/api/users",            usersRoutes);
-    app.use("/api/performance-data", performanceRoutes);
-    app.use("/api/analytics",        analyticsRoutes);
-    app.use("/api/logs",             logsRoutes);
-    app.use("/api/import",           importRoutes);
-    app.use("/api/download",         downloadRoutes);
-    app.use("/api/organizations",    organizationsRoutes);
-
-    // Error handling
-    app.use((err, req, res, next) => {
-      console.error(err.stack);
-      res.status(500).json({ message: "Something broke!" });
-    });
-
-    // Don't bind a port on Vercel — the serverless runtime handles that
-    if (!process.env.VERCEL) {
-      const port = process.env.PORT || 3000;
-      app.listen(port, () => console.log(`Server running on port ${port}`));
-    }
-
-    return app;
-  } catch (err) {
-    console.error("Application initialization failed:", err);
-    process.exit(1);
-  }
+  })();
+  _initPromise.catch((err) => {
+    console.error("DB init failed:", err);
+    _initPromise = null; // allow retry on next request
+  });
+  return _initPromise;
 };
 
-initializeApp();
-module.exports = app;
+// ── Export ────────────────────────────────────────────────────────────────────
+// Wrap app so DB is always ready before a request is handled.
+// This is the correct pattern for Vercel serverless + async DB init.
+const handler = (req, res) => {
+  initializeApp()
+    .then(() => app(req, res))
+    .catch((err) => {
+      console.error("Initialization error:", err);
+      res.status(500).json({ message: "Server initialization failed" });
+    });
+};
+
+// Local dev: start a real HTTP server
+if (!process.env.VERCEL) {
+  initializeApp()
+    .then(() => {
+      const port = process.env.PORT || 3000;
+      app.listen(port, () => console.log(`Server running on port ${port}`));
+    })
+    .catch((err) => {
+      console.error("Failed to start:", err);
+      process.exit(1);
+    });
+}
+
+module.exports = handler;
 
