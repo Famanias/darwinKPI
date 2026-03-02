@@ -37,7 +37,6 @@ function addHeader(doc, title = "KPI Report") {
   doc.moveDown();
 }
 
-
 // Helper to add a footer with page numbers
 function addFooter(doc) {
   const range = doc.bufferedPageRange();
@@ -49,7 +48,6 @@ function addFooter(doc) {
       .text(`Page ${i + 1} of ${range.count}`, 0, 770, { align: "center" });
   }
 }
-
 
 // Helper to render performance data as a table
 function renderPerformanceTable(doc, data) {
@@ -93,7 +91,7 @@ router.get(
         return res.status(404).json({ message: "No KPIs found" });
       }
       const kpiIds = kpis.map((kpi) => kpi.id);
-      const placeholders = kpiIds.map(() => '?').join(',');
+      const placeholders = kpiIds.map(() => "?").join(",");
       const [performanceData] = await db.execute(
         `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) ORDER BY date ASC`,
         kpiIds
@@ -128,7 +126,14 @@ router.get(
           .font("Helvetica-Bold")
           .text("Target:", 50, doc.y, { continued: true, align: "left" })
           .font("Helvetica")
-          .text(` ${kpi.target} ${kpi.unit}`, { align: "left" });
+          .text(
+            ` ${
+              kpi.target && kpi.target !== 0
+                ? kpi.target + " " + kpi.unit
+                : "Not set"
+            }`,
+            { align: "left" }
+          );
 
         doc
           .font("Helvetica-Bold")
@@ -142,11 +147,18 @@ router.get(
           .fontSize(14)
           .fillColor("#0d47a1")
           .font("Helvetica-Bold")
-          .text("Performance Data", 50, doc.y, { align: "left", underline: true });
+          .text("Performance Data", 50, doc.y, {
+            align: "left",
+            underline: true,
+          });
         const kpiData = performanceData.filter((pd) => pd.kpi_id === kpi.id);
 
         if (kpiData.length === 0) {
-          doc.font("Helvetica").fontSize(12).fillColor("gray").text("No performance data available.");
+          doc
+            .font("Helvetica")
+            .fontSize(12)
+            .fillColor("gray")
+            .text("No performance data available.");
         } else {
           renderPerformanceTable(doc, kpiData);
         }
@@ -187,13 +199,18 @@ router.post(
       const db = req.app.locals.db;
 
       // Get KPIs
-      const [kpis] = await db.execute("SELECT * FROM kpis WHERE id IN (" + kpiIds.map(() => '?').join(',') + ")", kpiIds);
+      const [kpis] = await db.execute(
+        "SELECT * FROM kpis WHERE id IN (" +
+          kpiIds.map(() => "?").join(",") +
+          ")",
+        kpiIds
+      );
       if (!kpis.length) {
         return res.status(404).json({ message: "No KPIs found" });
       }
 
       // Get performance data for the KPIs and user
-      const placeholders = kpiIds.map(() => '?').join(',');
+      const placeholders = kpiIds.map(() => "?").join(",");
       const [performanceData] = await db.execute(
         `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) AND user_id = ? ORDER BY date ASC`,
         [...kpiIds, userId]
@@ -227,7 +244,14 @@ router.post(
           .font("Helvetica-Bold")
           .text("Target:", 50, doc.y, { continued: true, align: "left" })
           .font("Helvetica")
-          .text(` ${kpi.target} ${kpi.unit}`, { align: "left" });
+          .text(
+            ` ${
+              kpi.target && kpi.target !== 0
+                ? kpi.target + " " + kpi.unit
+                : "Not set"
+            }`,
+            { align: "left" }
+          );
         doc
           .font("Helvetica-Bold")
           .text("Frequency:", 50, doc.y, { continued: true, align: "left" })
@@ -239,11 +263,18 @@ router.post(
           .fontSize(14)
           .fillColor("#0d47a1")
           .font("Helvetica-Bold")
-          .text("Performance Data", 50, doc.y, { align: "left", underline: true });
+          .text("Performance Data", 50, doc.y, {
+            align: "left",
+            underline: true,
+          });
         const kpiData = performanceData.filter((pd) => pd.kpi_id === kpi.id);
 
         if (kpiData.length === 0) {
-          doc.font("Helvetica").fontSize(12).fillColor("gray").text("No performance data available.");
+          doc
+            .font("Helvetica")
+            .fontSize(12)
+            .fillColor("gray")
+            .text("No performance data available.");
         } else {
           renderPerformanceTable(doc, kpiData);
         }
@@ -310,7 +341,14 @@ router.get(
         .font("Helvetica-Bold")
         .text("Target:", 50, doc.y, { continued: true, align: "left" })
         .font("Helvetica")
-        .text(` ${kpi.target} ${kpi.unit}`, { align: "left" });
+        .text(
+          ` ${
+            kpi.target && kpi.target !== 0
+              ? kpi.target + " " + kpi.unit
+              : "Not set"
+          }`,
+          { align: "left" }
+        );
 
       doc
         .font("Helvetica-Bold")
@@ -324,10 +362,17 @@ router.get(
         .fontSize(14)
         .fillColor("#0d47a1")
         .font("Helvetica-Bold")
-        .text("Performance Data", 50, doc.y, { align: "left", underline: true });
+        .text("Performance Data", 50, doc.y, {
+          align: "left",
+          underline: true,
+        });
 
       if (performanceData.length === 0) {
-        doc.font("Helvetica").fontSize(12).fillColor("gray").text("No performance data available.");
+        doc
+          .font("Helvetica")
+          .fontSize(12)
+          .fillColor("gray")
+          .text("No performance data available.");
       } else {
         renderPerformanceTable(doc, performanceData);
       }

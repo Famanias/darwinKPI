@@ -1,271 +1,203 @@
-<div class="p-6">
-  <h1 class="text-2xl font-bold mb-2">KPI Management</h1>
-  <p class="text-gray-600 mb-4">Create and manage Key Performance Indicators</p>
-  <div class="mb-4">
-    <input
-      type="text"
-      placeholder="Search KPIs..."
-      class="w-full p-2 border border-gray-300 rounded"
-    />
-  </div>
-  <div class="flex gap-4">
-    <button
-      class="bg-gray-800 text-white px-4 py-2 rounded mb-4"
-      (click)="openCreateModal()"
-    >
-      Add New KPI
-    </button>
-    <button
-      class="bg-gray-800 text-white px-4 py-2 rounded mb-4"
-      (click)="downloadReport()"
-    >
-      Download KPI Report
-    </button>
+﻿<div class="page-shell">
+  <!-- Page header -->
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+    <div>
+      <h1>KPI Management</h1>
+      <p>Create and manage Key Performance Indicators for your organisation</p>
+    </div>
+    <div style="display:flex;gap:.625rem;flex-shrink:0">
+      <button class="btn btn-secondary" (click)="downloadReport()">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+        </svg>
+        Download Report
+      </button>
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Add KPI
+      </button>
+    </div>
   </div>
 
-  <div class="bg-white p-6 rounded shadow">
-    <h2 class="text-xl font-semibold mb-2">KPI List</h2>
-    <p class="text-gray-600 mb-4">
-      Manage all Key Performance Indicators in your organization
-    </p>
-    <table class="w-full border-collapse">
-      <thead>
-        <tr class="bg-gray-50">
-          <th class="p-3 text-left font-bold">Name</th>
-          <th class="p-3 text-left font-bold">Description</th>
-          <th class="p-3 text-left font-bold">Unit</th>
-          <th class="p-3 text-left font-bold">Target</th>
-          <th class="p-3 text-left font-bold">Frequency</th>
-          <th class="p-3 text-left font-bold">Visualization</th>
-          <th class="p-3 text-left font-bold">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let kpi of kpis">
-          <td class="p-3 border-b">{{ kpi.name }}</td>
-          <td class="p-3 border-b">{{ kpi.description || "-" }}</td>
-          <td class="p-3 border-b">{{ kpi.unit }}</td>
-          <td class="p-3 border-b">{{ kpi.target }}</td>
-          <td class="p-3 border-b">{{ kpi.frequency }}</td>
-          <td class="p-3 border-b">
-            <i
-              class="fas mr-1"
-              [ngClass]="{
-                'fa-chart-bar': kpi.visualization === 'Bar',
-                'fa-tachometer-alt': kpi.visualization === 'Gauge',
-                'fa-chart-line': kpi.visualization === 'Line',
-                'fa-chart-pie': kpi.visualization === 'Pie'
-              }"
-            ></i>
-            {{ kpi.visualization }}
-          </td>
-          <td class="p-3 border-b">
-            <button
-              style="color: var(--edit-delete-color)"
-              class="mr-2 hover:opacity-75"
-              (click)="openEditModal(kpi)"
-            >
-              <span class="material-icons">edit</span>
-            </button>
-            <button
-              style="color: var(--edit-delete-color)"
-              class="hover:opacity-75"
-              (click)="deleteKpi(kpi.id)"
-            >
-              <span class="material-icons">delete</span>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="section-card">
+    <!-- Search + table header -->
+    <div class="section-card-header">
+      <h2>KPI List</h2>
+      <div class="search-wrap" style="width:240px">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+        </svg>
+        <input type="text" placeholder="Search KPIs..." class="form-input" />
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Unit</th>
+            <th>Target</th>
+            <th>Frequency</th>
+            <th>Visualization</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let kpi of kpis">
+            <td style="font-weight:500">{{ kpi.name }}</td>
+            <td style="color:#64748b;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ kpi.description || 'â€”' }}</td>
+            <td><span class="badge badge-blue">{{ kpi.unit }}</span></td>
+            <td>{{ kpi.target && kpi.target !== 0 ? kpi.target : 'â€”' }}</td>
+            <td><span class="badge badge-gray">{{ kpi.frequency }}</span></td>
+            <td>
+              <span class="badge badge-purple">
+                <i class="fas mr-1" [ngClass]="{
+                  'fa-chart-bar': kpi.visualization === 'Bar',
+                  'fa-tachometer-alt': kpi.visualization === 'Gauge',
+                  'fa-chart-line': kpi.visualization === 'Line',
+                  'fa-chart-pie': kpi.visualization === 'Pie'
+                }"></i>
+                {{ kpi.visualization }}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:.25rem">
+                <button class="icon-btn icon-btn-edit" (click)="openEditModal(kpi)" title="Edit">
+                  <span class="material-icons" style="font-size:18px">edit</span>
+                </button>
+                <button class="icon-btn icon-btn-delete" (click)="deleteKpi(kpi.id)" title="Delete">
+                  <span class="material-icons" style="font-size:18px">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="kpis.length === 0">
+            <td colspan="7" style="text-align:center;color:#94a3b8;padding:2.5rem">No KPIs found. Click "Add KPI" to create one.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Create KPI Modal -->
-  <div
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-    *ngIf="showCreateModal"
-  >
-    <div class="bg-white p-6 rounded w-1/2">
-      <h2 class="text-xl font-semibold mb-2">Create New KPI</h2>
-      <p class="text-gray-600 mb-4">
-        Define a new Key Performance Indicator for your organization.
-      </p>
-      <div class="mb-4">
-        <label class="block mb-1">Select a Pre-built KPI Template</label>
-        <select
-          class="w-full p-2 border border-gray-300 rounded"
-          (change)="onTemplateChange($event)"
-        >
-          <option value="">Choose a Pre-built KPI template</option>
-          <option *ngFor="let template of templates" [value]="template">
-            {{ template }}
-          </option>
-        </select>
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index:200" *ngIf="showCreateModal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>Create New KPI</h2>
+        <button class="icon-btn" (click)="closeCreateModal()" style="width:28px;height:28px;font-size:1.25rem;color:#64748b">&times;</button>
       </div>
-      <div class="mb-4">
-        <label class="block mb-1">KPI Name</label>
-        <input
-          type="text"
-          placeholder="e.g., Quality Assurance"
-          class="w-full p-2 border border-gray-300 rounded"
-          [(ngModel)]="newKpi.name"
-        />
-      </div>
-      <div class="mb-4">
-        <label class="block mb-1">Description</label>
-        <input
-          type="text"
-          placeholder="Describe the purpose of this KPI"
-          class="w-full p-2 border border-gray-300 rounded"
-          [(ngModel)]="newKpi.description"
-        />
-      </div>
-      <div class="mb-4 flex space-x-4">
-        <div class="flex-1">
-          <label class="block mb-1">Unit</label>
-          <select
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="newKpi.unit"
-          >
-            <option *ngFor="let unit of units" [value]="unit">
-              {{ unit }}
-            </option>
+      <div class="modal-body">
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Pre-built KPI Template</label>
+          <select class="form-select" (change)="onTemplateChange($event)">
+            <option value="">Choose a template (optional)</option>
+            <option *ngFor="let template of templates" [value]="template">{{ template }}</option>
           </select>
         </div>
-        <div class="flex-1">
-          <label class="block mb-1">Target Value</label>
-          <input
-            type="number"
-            placeholder="e.g., 10000"
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="newKpi.target"
-          />
+        <div style="margin-bottom:1rem">
+          <label class="form-label">KPI Name</label>
+          <input type="text" placeholder="e.g., Quality Assurance" class="form-input" [(ngModel)]="newKpi.name" />
+        </div>
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Description</label>
+          <input type="text" placeholder="Describe the purpose of this KPI" class="form-input" [(ngModel)]="newKpi.description" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div>
+            <label class="form-label">Unit</label>
+            <select class="form-select" [(ngModel)]="newKpi.unit">
+              <option *ngFor="let unit of units" [value]="unit">{{ unit }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="display:flex;align-items:center;gap:.375rem">
+              <input type="checkbox" [(ngModel)]="includeTargetForNew" (change)="onTargetCheckboxChange(true)" />
+              Target Value
+            </label>
+            <input type="number" placeholder="e.g., 10000" class="form-input" [(ngModel)]="newKpi.target" [disabled]="!includeTargetForNew" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <label class="form-label">Frequency</label>
+            <select class="form-select" [(ngModel)]="newKpi.frequency">
+              <option *ngFor="let freq of frequencies" [value]="freq">{{ freq }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Visualization</label>
+            <select class="form-select" [(ngModel)]="newKpi.visualization">
+              <option *ngFor="let vis of visualizations" [value]="vis" [disabled]="isVisualizationDisabled(vis, includeTargetForNew)">
+                {{ vis }}{{ isVisualizationDisabled(vis, includeTargetForNew) ? ' (requires target)' : '' }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="mb-4 flex space-x-4">
-        <div class="flex-1">
-          <label class="block mb-1">Measurement Frequency</label>
-          <select
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="newKpi.frequency"
-          >
-            <option *ngFor="let freq of frequencies" [value]="freq">
-              {{ freq }}
-            </option>
-          </select>
-        </div>
-        <div class="flex-1">
-          <label class="block mb-1">Visualization Type</label>
-          <select
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="newKpi.visualization"
-          >
-            <option *ngFor="let vis of visualizations" [value]="vis">
-              {{ vis }}
-            </option>
-          </select>
-        </div>
-      </div>
-      <div class="flex justify-end space-x-2">
-        <button
-          class="bg-gray-200 px-4 py-2 rounded"
-          (click)="closeCreateModal()"
-        >
-          Cancel
-        </button>
-        <button
-          class="bg-gray-800 text-white px-4 py-2 rounded"
-          (click)="createKpi()"
-        >
-          Add New KPI
-        </button>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeCreateModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="createKpi()">Create KPI</button>
       </div>
     </div>
   </div>
 
   <!-- Edit KPI Modal -->
-  <div
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-    *ngIf="showEditModal"
-  >
-    <div class="bg-white p-6 rounded w-1/2">
-      <h2 class="text-xl font-semibold mb-2">Edit KPI</h2>
-      <p class="text-gray-600 mb-4">Update this Key Performance Indicator.</p>
-      <div class="mb-4">
-        <label class="block mb-1">KPI Name</label>
-        <input
-          type="text"
-          class="w-full p-2 border border-gray-300 rounded"
-          [(ngModel)]="editKpi.name"
-        />
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index:200" *ngIf="showEditModal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>Edit KPI</h2>
+        <button class="icon-btn" (click)="closeEditModal()" style="width:28px;height:28px;font-size:1.25rem;color:#64748b">&times;</button>
       </div>
-      <div class="mb-4">
-        <label class="block mb-1">Description</label>
-        <input
-          type="text"
-          class="w-full p-2 border border-gray-300 rounded"
-          [(ngModel)]="editKpi.description"
-        />
-      </div>
-      <div class="mb-4 flex space-x-4">
-        <div class="flex-1">
-          <label class="block mb-1">Unit</label>
-          <select
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="editKpi.unit"
-          >
-            <option *ngFor="let unit of units" [value]="unit">
-              {{ unit }}
-            </option>
-          </select>
+      <div class="modal-body">
+        <div style="margin-bottom:1rem">
+          <label class="form-label">KPI Name</label>
+          <input type="text" class="form-input" [(ngModel)]="editKpi.name" />
         </div>
-        <div class="flex-1">
-          <label class="block mb-1">Target Value</label>
-          <input
-            type="number"
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="editKpi.target"
-          />
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-input" [(ngModel)]="editKpi.description" />
         </div>
-      </div>
-      <div class="mb-4 flex space-x-4">
-        <div class="flex-1">
-          <label class="block mb-1">Measurement Frequency</label>
-          <select
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="editKpi.frequency"
-          >
-            <option *ngFor="let freq of frequencies" [value]="freq">
-              {{ freq }}
-            </option>
-          </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div>
+            <label class="form-label">Unit</label>
+            <select class="form-select" [(ngModel)]="editKpi.unit">
+              <option *ngFor="let unit of units" [value]="unit">{{ unit }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="display:flex;align-items:center;gap:.375rem">
+              <input type="checkbox" [(ngModel)]="includeTargetForEdit" (change)="onTargetCheckboxChange(false)" />
+              Target Value
+            </label>
+            <input type="number" class="form-input" [(ngModel)]="editKpi.target" [disabled]="!includeTargetForEdit" />
+          </div>
         </div>
-        <div class="flex-1">
-          <label class="block mb-1">Visualization Type</label>
-          <select
-            class="w-full p-2 border border-gray-300 rounded"
-            [(ngModel)]="editKpi.visualization"
-          >
-            <option *ngFor="let vis of visualizations" [value]="vis">
-              {{ vis }}
-            </option>
-          </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <label class="form-label">Frequency</label>
+            <select class="form-select" [(ngModel)]="editKpi.frequency">
+              <option *ngFor="let freq of frequencies" [value]="freq">{{ freq }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Visualization</label>
+            <select class="form-select" [(ngModel)]="editKpi.visualization">
+              <option *ngFor="let vis of visualizations" [value]="vis" [disabled]="isVisualizationDisabled(vis, includeTargetForEdit)">
+                {{ vis }}{{ isVisualizationDisabled(vis, includeTargetForEdit) ? ' (requires target)' : '' }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="flex justify-end space-x-2">
-        <button
-          class="bg-gray-200 px-4 py-2 rounded"
-          (click)="closeEditModal()"
-        >
-          Cancel
-        </button>
-        <button
-          class="bg-gray-800 text-white px-4 py-2 rounded"
-          (click)="updateKpi()"
-        >
-          Update KPI
-        </button>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="updateKpi()">Save Changes</button>
       </div>
     </div>
   </div>
+
 </div>

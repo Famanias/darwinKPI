@@ -17,6 +17,7 @@ export class UserManagementComponent implements OnInit {
     lastName: '',
     extension: '',
     email: '',
+    password: '',
     role: 'User',
     status: 'Active'
   };
@@ -132,6 +133,7 @@ updateUser(): void {
       lastName: '',
       extension: '',
       email: '',
+      password: '',
       role: 'User',
       status: 'Active'
     };

@@ -1,0 +1,318 @@
+<div class="docs-page">
+
+  <!-- Nav -->
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a routerLink="/" class="docs-nav-logo">
+        <img src="darwinKPI.png" class="landing-logo-img-sm" alt="DarwinKPI logo" />
+        <span class="landing-logo-text">Darwin<strong>KPI</strong></span>
+      </a>
+      <div class="docs-nav-actions">
+        <a routerLink="/" class="btn-back">&#8592; Back to Home</a>
+        <a routerLink="/login" class="btn-login">Log in</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="docs-hero">
+    <span class="docs-hero-label">Documentation</span>
+    <h1 class="docs-hero-title">DarwinKPI Docs</h1>
+    <p class="docs-hero-sub">Everything you need to know about using DarwinKPI to track, manage, and visualize your organization&#8217;s KPIs.</p>
+  </div>
+
+  <!-- Body -->
+  <div class="docs-body">
+
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <p class="docs-sidebar-label">On this page</p>
+      <ul class="docs-nav-list">
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('overview')">Overview</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('getting-started')">Getting Started</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('user-roles')">User Roles</a></li>
+        <li class="section-group">
+          <span class="section-group-label">Features</span>
+        </li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('kpi-management')">KPI Management</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('data-import')">Data Import</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('dashboard')">Dashboard</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('analytics')">Analytics</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('admin-dashboard')">Admin Dashboard</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('user-management')">User Management</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('organization-settings')">Organization Settings</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('reports')">Reports &amp; Downloads</a></li>
+        <li><a href="#" (click)="$event.preventDefault(); scrollTo('activity-logs')">Activity Logs</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="docs-content">
+
+      <!-- Overview -->
+      <section class="docs-section" id="overview">
+        <h2>Overview</h2>
+        <p>DarwinKPI is a performance management platform for organizations that need a centralized, data-driven way to track Key Performance Indicators. The system supports multiple isolated organizations, each with invite-code-based membership and role-based access control.</p>
+        <p>With DarwinKPI you can define KPIs, upload performance data, monitor trends through interactive charts, and export PDF reports &mdash; all in one place.</p>
+        <div class="feature-pills">
+          <span class="feature-pill">&#128200; Interactive Charts</span>
+          <span class="feature-pill">&#128194; CSV &amp; Excel Import</span>
+          <span class="feature-pill">&#128196; PDF Reports</span>
+          <span class="feature-pill">&#128101; Multi-org Support</span>
+          <span class="feature-pill">&#128274; Role-based Access</span>
+          <span class="feature-pill">&#128203; Activity Audit Logs</span>
+        </div>
+      </section>
+
+      <!-- Getting Started -->
+      <section class="docs-section" id="getting-started">
+        <h2>Getting Started</h2>
+        <p>There are three ways to get an account on DarwinKPI:</p>
+
+        <h3>Option 1 &mdash; Create a New Organization</h3>
+        <p>Use this if your organization is not yet on DarwinKPI. You will become the <strong>Admin</strong> of the new organization.</p>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span class="step-text">Navigate to the <a routerLink="/register">Register</a> page.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span class="step-text">Enter your name, email address, and a password (minimum 8 characters).</span></li>
+          <li class="step-item"><span class="step-num">3</span><span class="step-text">Enter a unique <strong>Organization Name</strong> in the organization field.</span></li>
+          <li class="step-item"><span class="step-num">4</span><span class="step-text">Submit &mdash; your account is created as the organization Admin.</span></li>
+          <li class="step-item"><span class="step-num">5</span><span class="step-text">Find your <strong>Invite Code</strong> in Organization Settings and share it with colleagues.</span></li>
+        </ol>
+
+        <h3>Option 2 &mdash; Join an Existing Organization</h3>
+        <p>Use this if your organization already has a DarwinKPI account and an Admin has given you an invite code.</p>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span class="step-text">Navigate to the <a routerLink="/register">Register</a> page.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span class="step-text">Enter your name, email, and password.</span></li>
+          <li class="step-item"><span class="step-num">3</span><span class="step-text">Enter the <strong>Invite Code</strong> provided by your Admin (leave Organization Name blank).</span></li>
+          <li class="step-item"><span class="step-num">4</span><span class="step-text">Submit &mdash; you join the organization with the <strong>User</strong> role by default.</span></li>
+        </ol>
+        <div class="callout callout-tip">
+          <strong>Tip:</strong> Your Admin can later promote your role to Analyst or Admin from the User Management page.
+        </div>
+
+        <h3>Option 3 &mdash; Admin Creates You Directly</h3>
+        <p>An organization Admin can create accounts on your behalf from the User Management panel. You will receive a temporary password of <span class="tag">TempPass123!</span> unless the Admin sets a custom one.</p>
+
+        <h3>Logging In</h3>
+        <p>Navigate to the <a routerLink="/login">Login</a> page, enter your email and password, and you will be taken to your Dashboard.</p>
+      </section>
+
+      <!-- User Roles -->
+      <section class="docs-section" id="user-roles">
+        <h2>User Roles</h2>
+        <p>DarwinKPI uses three roles to control access within an organization. Each new member who joins via invite code starts as a <strong>User</strong>; Admins can reassign roles at any time.</p>
+        <div class="role-table-wrap">
+          <table class="role-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Permissions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="role-badge badge-admin">Admin</span></td>
+                <td>Full access &mdash; manage users and roles, create and manage KPIs, import data, view all analytics, manage organization settings, view activity logs, and access the Admin Dashboard.</td>
+              </tr>
+              <tr>
+                <td><span class="role-badge badge-analyst">Analyst</span></td>
+                <td>Create and manage KPIs, import performance data, view dashboard and analytics.</td>
+              </tr>
+              <tr>
+                <td><span class="role-badge badge-user">User</span></td>
+                <td>View dashboard and analytics, import performance data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <strong>Note:</strong> Only one role is assigned per user. Role changes take effect immediately and are recorded in the activity log.
+        </div>
+      </section>
+
+      <!-- KPI Management -->
+      <section class="docs-section" id="kpi-management">
+        <h2>KPI Management</h2>
+        <p>KPIs are the core metric definitions in DarwinKPI. Each KPI belongs to your organization and is visible to all members.</p>
+        <h3>Creating a KPI</h3>
+        <p>Navigate to <strong>KPI Management</strong> in the sidebar. Click <strong>Add KPI</strong> and fill in the following fields:</p>
+        <ul>
+          <li><strong>Name</strong> &mdash; A short, descriptive name (e.g., &ldquo;Monthly Revenue&rdquo;).</li>
+          <li><strong>Description</strong> &mdash; Optional context about what this KPI measures.</li>
+          <li><strong>Unit</strong> &mdash; The unit of measurement (e.g., &ldquo;USD&rdquo;, &ldquo;%&rdquo;, &ldquo;hours&rdquo;).</li>
+          <li><strong>Target Value</strong> &mdash; The goal or benchmark value for this KPI.</li>
+          <li><strong>Frequency</strong> &mdash; How often data is reported: Daily, Weekly, or Monthly.</li>
+          <li><strong>Visualization</strong> &mdash; Preferred chart type: Line or Bar.</li>
+        </ul>
+        <h3>Editing &amp; Deleting KPIs</h3>
+        <p>Each KPI in the list has <strong>Edit</strong> and <strong>Delete</strong> actions. Deleting a KPI also removes all associated performance data entries.</p>
+        <div class="callout callout-warn">
+          <strong>Warning:</strong> Deleting a KPI is permanent and cannot be undone. All historical data linked to that KPI will be lost.
+        </div>
+      </section>
+
+      <!-- Data Import -->
+      <section class="docs-section" id="data-import">
+        <h2>Data Import</h2>
+        <p>DarwinKPI accepts performance data uploaded as <span class="tag">.csv</span> or <span class="tag">.xlsx</span> files. Each upload is linked to a specific KPI.</p>
+        <h3>File Format</h3>
+        <p>Your file should have two columns:</p>
+        <ul>
+          <li><strong>date</strong> &mdash; The date of the data point (e.g., <span class="tag">2024-01-15</span> or <span class="tag">January 15, 2024</span>).</li>
+          <li><strong>value</strong> &mdash; The numeric value for that date.</li>
+        </ul>
+        <div class="callout callout-tip">
+          <strong>Tip:</strong> The first row should be a header row with column names. Extra columns are ignored.
+        </div>
+        <h3>Uploading Data</h3>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span class="step-text">Go to <strong>Data Import</strong> in the sidebar.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span class="step-text">Select the <strong>KPI</strong> you want to upload data for.</span></li>
+          <li class="step-item"><span class="step-num">3</span><span class="step-text">Choose your <span class="tag">.csv</span> or <span class="tag">.xlsx</span> file.</span></li>
+          <li class="step-item"><span class="step-num">4</span><span class="step-text">Click <strong>Import</strong> &mdash; the data is parsed and stored immediately.</span></li>
+        </ol>
+        <p>Uploaded records are linked to your user account and visible to everyone in your organization once imported.</p>
+      </section>
+
+      <!-- Dashboard -->
+      <section class="docs-section" id="dashboard">
+        <h2>Dashboard</h2>
+        <p>The Dashboard gives you a per-KPI view of performance over time. Each KPI you have data for appears as an interactive chart widget.</p>
+        <h3>Time Range Filters</h3>
+        <p>Use the time range selector above each chart to change the period displayed:</p>
+        <ul>
+          <li>7 Days</li>
+          <li>30 Days</li>
+          <li>90 Days</li>
+          <li>1 Year</li>
+          <li>All Time</li>
+          <li>Custom Date Range &mdash; pick a start and end date manually.</li>
+        </ul>
+        <h3>Chart Types</h3>
+        <p>Each chart renders as the visualization type set on the KPI (Line or Bar). The target value is displayed as a reference line so you can see performance relative to the goal at a glance.</p>
+      </section>
+
+      <!-- Analytics -->
+      <section class="docs-section" id="analytics">
+        <h2>Analytics</h2>
+        <p>The Analytics page provides an aggregated, organization-wide view of all KPI performance data. It is designed for exploration and trend analysis across multiple metrics at once.</p>
+        <ul>
+          <li>View performance trends for all KPIs side by side.</li>
+          <li>Filter by individual KPI or date range.</li>
+          <li>Identify patterns and compare metrics across different time windows.</li>
+        </ul>
+        <p>Available to all roles: Admin, Analyst, and User.</p>
+      </section>
+
+      <!-- Admin Dashboard -->
+      <section class="docs-section" id="admin-dashboard">
+        <h2>Admin Dashboard</h2>
+        <p>The Admin Dashboard is a high-level overview page exclusive to users with the <span class="role-badge badge-admin">Admin</span> role. It summarizes organization-wide performance including:</p>
+        <ul>
+          <li>Total KPIs defined and active data entries.</li>
+          <li>Recent data import activity.</li>
+          <li>Overall performance status across all KPIs.</li>
+          <li>Quick links to key administrative functions.</li>
+        </ul>
+      </section>
+
+      <!-- User Management -->
+      <section class="docs-section" id="user-management">
+        <h2>User Management</h2>
+        <p>Available to <span class="role-badge badge-admin">Admin</span> only. Manage all accounts within your organization from one place.</p>
+        <h3>Viewing Users</h3>
+        <p>The User Management page lists every member of your organization with their name, email, role, and status (Active or Inactive).</p>
+        <h3>Adding a User</h3>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span class="step-text">Click <strong>Add User</strong>.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span class="step-text">Fill in the user&#8217;s name, email, and password.</span></li>
+          <li class="step-item"><span class="step-num">3</span><span class="step-text">Assign a role: Admin, Analyst, or User.</span></li>
+          <li class="step-item"><span class="step-num">4</span><span class="step-text">Submit &mdash; the account is created immediately.</span></li>
+        </ol>
+        <h3>Changing Roles &amp; Status</h3>
+        <p>Click <strong>Edit</strong> next to any user to update their role or toggle their account status between Active and Inactive. Inactive users cannot log in.</p>
+      </section>
+
+      <!-- Organization Settings -->
+      <section class="docs-section" id="organization-settings">
+        <h2>Organization Settings</h2>
+        <p>Available to <span class="role-badge badge-admin">Admin</span> only. View and manage your organization&#8217;s profile and invite code.</p>
+        <h3>Invite Code</h3>
+        <p>Your organization has a unique invite code. Share this code with anyone you want to add &mdash; they enter it on the Register page to join your organization automatically.</p>
+        <p>If you believe the code has been compromised, click <strong>Regenerate Invite Code</strong> to issue a new one. The old code becomes invalid immediately.</p>
+        <div class="callout callout-warn">
+          <strong>Warning:</strong> Regenerating the invite code invalidates the previous one. Anyone who has not yet registered using the old code will need the new one.
+        </div>
+      </section>
+
+      <!-- Reports & Downloads -->
+      <section class="docs-section" id="reports">
+        <h2>Reports &amp; Downloads</h2>
+        <p>DarwinKPI lets you export KPI performance data as a formatted <strong>PDF report</strong>. Reports are generated on demand and downloaded directly to your device.</p>
+        <h3>What a Report Includes</h3>
+        <ul>
+          <li>Branded header with organization name and report date.</li>
+          <li>KPI details: name, description, unit, target, and frequency.</li>
+          <li>Formatted data table with all performance entries in the selected time range.</li>
+          <li>Page numbers.</li>
+        </ul>
+        <h3>Generating a Report</h3>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span class="step-text">Open the Dashboard and navigate to the KPI you want to export.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span class="step-text">Set the desired time range using the filter controls.</span></li>
+          <li class="step-item"><span class="step-num">3</span><span class="step-text">Click the <strong>Download PDF</strong> button on the KPI widget.</span></li>
+          <li class="step-item"><span class="step-num">4</span><span class="step-text">The report will download automatically to your browser&#8217;s default download folder.</span></li>
+        </ol>
+      </section>
+
+      <!-- Activity Logs -->
+      <section class="docs-section" id="activity-logs">
+        <h2>Activity Logs</h2>
+        <p>Available to <span class="role-badge badge-admin">Admin</span> only. The Activity Logs page provides a full audit trail of user actions within your organization.</p>
+        <h3>What Is Logged</h3>
+        <ul>
+          <li>User logins and logouts.</li>
+          <li>KPI creation, edits, and deletions.</li>
+          <li>Data import events (which user imported data for which KPI).</li>
+          <li>User account changes (role updates, status changes, new accounts).</li>
+          <li>Organization settings changes (e.g., invite code regeneration).</li>
+        </ul>
+        <h3>Filtering Logs</h3>
+        <p>Use the user filter dropdown to view activity from a specific team member. This is useful for accountability reviews or investigating unexpected changes.</p>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="landing-container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-brand-logo">
+            <img src="darwinKPI.png" class="landing-logo-img-sm footer-brand-logo" alt="DarwinKPI" />
+            <span class="footer-logo-text">Darwin<strong>KPI</strong></span>
+          </div>
+          <p class="footer-tagline">Performance management for modern organizations.</p>
+        </div>
+        <div class="footer-nav-group">
+          <span class="footer-nav-label">Product</span>
+          <a routerLink="/login" class="footer-nav-link">Log in</a>
+          <a routerLink="/register" class="footer-nav-link">Get started</a>
+          <a routerLink="/docs" class="footer-nav-link">Documentation</a>
+        </div>
+        <div class="footer-nav-group">
+          <span class="footer-nav-label">Legal</span>
+          <a routerLink="/terms" class="footer-nav-link">Terms of Service</a>
+          <a routerLink="/privacy" class="footer-nav-link">Privacy Policy</a>
+          <a routerLink="/contact" class="footer-nav-link">Contact Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">&copy; 2026 DarwinKPI. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+</div>

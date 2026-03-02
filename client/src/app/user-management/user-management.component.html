@@ -1,141 +1,188 @@
-<div class="p-6">
-    <h1 class="text-2xl font-bold mb-2">User Management</h1>
-    <p class="text-gray-600 mb-4">Manage user accounts and permissions</p>
-    <div class="mb-4">
-      <input type="text" placeholder="Search users..." class="w-full p-2 border border-gray-300 rounded">
+﻿<div class="page-shell">
+  <!-- Page header -->
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+    <div>
+      <h1>User Management</h1>
+      <p>Manage user accounts and role permissions across your organisation</p>
     </div>
-    <button class="bg-gray-800 text-white px-4 py-2 rounded float-right mb-4" (click)="openCreateModal()">Add New User</button>
-  
-    <div class="bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-semibold mb-2">User List</h2>
-      <p class="text-gray-600 mb-4">Manage all users in the Darwin KPI system</p>
-      <table class="w-full border-collapse">
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Add User
+    </button>
+  </div>
+
+  <div class="section-card">
+    <div class="section-card-header">
+      <h2>All Users</h2>
+      <div class="search-wrap" style="width:240px">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+        </svg>
+        <input type="text" placeholder="Search users..." class="form-input" />
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table class="data-table">
         <thead>
-          <tr class="bg-gray-50">
-            <th class="p-3 text-left font-bold">Name</th>
-            <th class="p-3 text-left font-bold">Email</th>
-            <th class="p-3 text-left font-bold">Role</th>
-            <th class="p-3 text-left font-bold">Status</th>
-            <th class="p-3 text-left font-bold">Actions</th>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let user of users">
-            <td class="p-3 border-b">{{ user.name }}</td>
-            <td class="p-3 border-b">{{ user.email }}</td>
-            <td class="p-3 border-b">
-              <span class="px-3 py-1 rounded-full" [ngClass]="{
-                'bg-red-100 text-red-800': user.role === 'Admin',
-                'bg-green-100 text-green-800': user.role === 'User',
-                'bg-blue-100 text-blue-800': user.role === 'Analyst'
+            <td>
+              <div style="display:flex;align-items:center;gap:.625rem">
+                <div style="width:32px;height:32px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#2563eb" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <span style="font-weight:500">{{ user.name }}</span>
+              </div>
+            </td>
+            <td style="color:#64748b">{{ user.email }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'badge-red':    user.role === 'Admin',
+                'badge-green':  user.role === 'User',
+                'badge-blue':   user.role === 'Analyst'
               }">{{ user.role }}</span>
             </td>
-            <td class="p-3 border-b">
-              <span [ngClass]="{'text-green-600': user.status === 'Active', 'text-red-600': user.status === 'Inactive'}">{{ user.status }}</span>
+            <td>
+              <span class="badge" [ngClass]="{
+                'badge-green': user.status === 'Active',
+                'badge-gray':  user.status === 'Inactive'
+              }">{{ user.status }}</span>
             </td>
-            <td class="p-3 border-b">
-              <button style="color: var(--edit-delete-color)" class="mr-2 hover:opacity-75" (click)="openEditModal(user)">
-                <span class="material-icons">edit</span>
-              </button>
-              <button style="color: var(--edit-delete-color)" class="hover:opacity-75" (click)="deleteUser(user.id)">
-                <span class="material-icons">delete</span>
-              </button>
+            <td>
+              <div style="display:flex;gap:.25rem">
+                <button class="icon-btn icon-btn-edit" (click)="openEditModal(user)" title="Edit">
+                  <span class="material-icons" style="font-size:18px">edit</span>
+                </button>
+                <button class="icon-btn icon-btn-delete" (click)="deleteUser(user.id)" title="Delete">
+                  <span class="material-icons" style="font-size:18px">delete</span>
+                </button>
+              </div>
             </td>
+          </tr>
+          <tr *ngIf="users.length === 0">
+            <td colspan="5" style="text-align:center;color:#94a3b8;padding:2.5rem">No users found.</td>
           </tr>
         </tbody>
       </table>
     </div>
-  
-    <!-- Create User Modal -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" *ngIf="showCreateModal">
-      <div class="bg-white p-6 rounded w-1/2">
-        <h2 class="text-xl font-semibold mb-2">Create New User</h2>
-        <p class="text-gray-600 mb-4">Add a new user to the Darwin KPI system.</p>
-        <div class="mb-4 flex space-x-4">
-          <div class="flex-1">
-            <label class="block mb-1">First Name</label>
-            <input type="text" placeholder="e.g., Juan" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="newUser.firstName">
-          </div>
-          <div class="flex-1">
-            <label class="block mb-1">Extension</label>
-            <input type="text" placeholder="e.g., Jr." class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="newUser.extension">
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1">Last Name</label>
-          <input type="text" placeholder="e.g., Dela Cruz" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="newUser.lastName">
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1">Email</label>
-          <input type="email" placeholder="e.g., juandelacruzjr@example.com" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="newUser.email">
-        </div>
-        <div class="mb-4 flex space-x-4">
-          <div class="flex-1">
-            <label class="block mb-1">Role</label>
-            <select class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="newUser.role">
-              <option value="User">User</option>
-              <option value="Analyst">Analyst</option>
-              <option value="Admin">Admin</option>
-            </select>
-          </div>
-          <div class="flex-1">
-            <label class="block mb-1">Status</label>
-            <select class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="newUser.status">
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex justify-end space-x-2">
-          <button class="bg-gray-200 px-4 py-2 rounded" (click)="closeCreateModal()">Cancel</button>
-          <button class="bg-gray-800 text-white px-4 py-2 rounded" (click)="createUser()">Add New User</button>
-        </div>
-      </div>
-    </div>
+  </div>
 
-    <!-- Edit User Modal -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" *ngIf="showEditModal">
-      <div class="bg-white p-6 rounded w-1/2">
-        <h2 class="text-xl font-semibold mb-2">Edit User</h2>
-        <div class="mb-4 flex space-x-4">
-          <div class="flex-1">
-            <label class="block mb-1">First Name</label>
-            <input type="text" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editUser.firstName">
+  <!-- Create User Modal -->
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index:200" *ngIf="showCreateModal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>Add New User</h2>
+        <button class="icon-btn" (click)="closeCreateModal()" style="width:28px;height:28px;font-size:1.25rem;color:#64748b">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div>
+            <label class="form-label">First Name</label>
+            <input type="text" placeholder="e.g., Juan" class="form-input" [(ngModel)]="newUser.firstName" />
           </div>
-          <div class="flex-1">
-            <label class="block mb-1">Extension</label>
-            <input type="text" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editUser.extension">
+          <div>
+            <label class="form-label">Extension</label>
+            <input type="text" placeholder="e.g., Jr." class="form-input" [(ngModel)]="newUser.extension" />
           </div>
         </div>
-        <div class="mb-4">
-          <label class="block mb-1">Last Name</label>
-          <input type="text" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editUser.lastName">
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Last Name</label>
+          <input type="text" placeholder="e.g., Dela Cruz" class="form-input" [(ngModel)]="newUser.lastName" />
         </div>
-        <div class="mb-4">
-          <label class="block mb-1">Email</label>
-          <input type="email" class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editUser.email">
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Email</label>
+          <input type="email" placeholder="e.g., juan@example.com" class="form-input" [(ngModel)]="newUser.email" />
         </div>
-        <div class="mb-4 flex space-x-4">
-          <div class="flex-1">
-            <label class="block mb-1">Role</label>
-            <select class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editUser.role">
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Password</label>
+          <input type="password" placeholder="Temporary password" class="form-input" [(ngModel)]="newUser.password" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <label class="form-label">Role</label>
+            <select class="form-select" [(ngModel)]="newUser.role">
               <option value="User">User</option>
               <option value="Analyst">Analyst</option>
               <option value="Admin">Admin</option>
             </select>
           </div>
-          <div class="flex-1">
-            <label class="block mb-1">Status</label>
-            <select class="w-full p-2 border border-gray-300 rounded" [(ngModel)]="editUser.status">
+          <div>
+            <label class="form-label">Status</label>
+            <select class="form-select" [(ngModel)]="newUser.status">
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
           </div>
         </div>
-        <div class="flex justify-end space-x-2">
-          <button class="bg-gray-200 px-4 py-2 rounded" (click)="closeEditModal()">Cancel</button>
-          <button class="bg-gray-800 text-white px-4 py-2 rounded" (click)="updateUser()">Save Changes</button>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeCreateModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="createUser()">Create User</button>
       </div>
     </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index:200" *ngIf="showEditModal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>Edit User</h2>
+        <button class="icon-btn" (click)="closeEditModal()" style="width:28px;height:28px;font-size:1.25rem;color:#64748b">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div>
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-input" [(ngModel)]="editUser.firstName" />
+          </div>
+          <div>
+            <label class="form-label">Extension</label>
+            <input type="text" class="form-input" [(ngModel)]="editUser.extension" />
+          </div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Last Name</label>
+          <input type="text" class="form-input" [(ngModel)]="editUser.lastName" />
+        </div>
+        <div style="margin-bottom:1rem">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" [(ngModel)]="editUser.email" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <label class="form-label">Role</label>
+            <select class="form-select" [(ngModel)]="editUser.role">
+              <option value="User">User</option>
+              <option value="Analyst">Analyst</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Status</label>
+            <select class="form-select" [(ngModel)]="editUser.status">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="updateUser()">Save Changes</button>
+      </div>
+    </div>
+  </div>
 </div>

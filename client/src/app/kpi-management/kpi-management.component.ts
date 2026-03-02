@@ -21,6 +21,7 @@ export class KpiManagementComponent implements OnInit {
     frequency: 'Daily',
     visualization: 'Bar',
   };
+  includeTargetForNew = false;
 
   showEditModal = false;
   editKpi: any = {
@@ -32,6 +33,7 @@ export class KpiManagementComponent implements OnInit {
     frequency: 'Daily',
     visualization: 'Bar',
   };
+  includeTargetForEdit = false;
 
   templates = [
     'Sales Target',
@@ -47,6 +49,30 @@ export class KpiManagementComponent implements OnInit {
   visualizations = ['Bar', 'Gauge', 'Line', 'Pie'];
 
   constructor(private authService: AuthService) {}
+
+  isVisualizationDisabled(vis: string, hasTarget: boolean): boolean {
+    // Pie and Gauge require a target value
+    const requiresTarget = ['Pie', 'Gauge'];
+    return requiresTarget.includes(vis) && !hasTarget;
+  }
+
+  onTargetCheckboxChange(isCreate: boolean): void {
+    const includeTarget = isCreate
+      ? this.includeTargetForNew
+      : this.includeTargetForEdit;
+    const currentVis = isCreate
+      ? this.newKpi.visualization
+      : this.editKpi.visualization;
+
+    // If unchecking target and current visualization requires target, switch to Bar
+    if (!includeTarget && (currentVis === 'Pie' || currentVis === 'Gauge')) {
+      if (isCreate) {
+        this.newKpi.visualization = 'Bar';
+      } else {
+        this.editKpi.visualization = 'Bar';
+      }
+    }
+  }
 
   ngOnInit(): void {
     this.loadKpis();
@@ -73,7 +99,11 @@ export class KpiManagementComponent implements OnInit {
   }
 
   createKpi(): void {
-    this.authService.createKpi(this.newKpi).subscribe(
+    const kpiData = {
+      ...this.newKpi,
+      target: this.includeTargetForNew ? this.newKpi.target : 0,
+    };
+    this.authService.createKpi(kpiData).subscribe(
       () => {
         this.loadKpis();
         this.closeCreateModal();
@@ -96,6 +126,8 @@ export class KpiManagementComponent implements OnInit {
       frequency: kpi.frequency,
       visualization: kpi.visualization,
     };
+    this.includeTargetForEdit =
+      kpi.target !== null && kpi.target !== undefined && kpi.target !== 0;
     this.showEditModal = true;
   }
 
@@ -113,7 +145,16 @@ export class KpiManagementComponent implements OnInit {
   }
 
   updateKpi(): void {
-    this.authService.updateKpi(this.editKpi.id, this.editKpi).subscribe({
+    const kpiData = {
+      name: this.editKpi.name,
+      description: this.editKpi.description || '',
+      unit: this.editKpi.unit,
+      target: this.includeTargetForEdit ? this.editKpi.target : 0,
+      frequency: this.editKpi.frequency,
+      visualization: this.editKpi.visualization,
+    };
+    console.log('Updating KPI with data:', kpiData);
+    this.authService.updateKpi(this.editKpi.id, kpiData).subscribe({
       next: () => {
         this.loadKpis();
         this.closeEditModal();
@@ -159,49 +200,48 @@ export class KpiManagementComponent implements OnInit {
       frequency: 'Daily',
       visualization: 'Bar',
     };
+    this.includeTargetForNew = false;
   }
 
   downloadReport() {
-        const user = this.authService.getUser();
-        if (!user?.id) {
-          alert('User session expired. Please log in again.');
-          return;
-        }
-        this.authService.downloadAllKpiReport().subscribe(
-          (response) => {
-            const blob = new Blob([response.body!], {
-              type: 'application/pdf',
-            });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
+    const user = this.authService.getUser();
+    if (!user?.id) {
+      alert('User session expired. Please log in again.');
+      return;
+    }
+    this.authService.downloadAllKpiReport().subscribe(
+      (response) => {
+        const blob = new Blob([response.body!], {
+          type: 'application/pdf',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
 
-            // Try to get filename from Content-Disposition
-            const contentDisposition = response.headers.get(
-              'Content-Disposition'
-            );
-            const match = contentDisposition?.match(/filename="(.+)"/);
-            const filename = match ? match[1] : 'kpi_report_all.pdf';
+        // Try to get filename from Content-Disposition
+        const contentDisposition = response.headers.get('Content-Disposition');
+        const match = contentDisposition?.match(/filename="(.+)"/);
+        const filename = match ? match[1] : 'kpi_report_all.pdf';
 
-            a.download = filename;
-            a.click();
-            window.URL.revokeObjectURL(url);
-          },
-          (error) => {
-            console.error('Download failed', error);
-            alert('Failed to download report.');
-          }
-        );
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      (error) => {
+        console.error('Download failed', error);
+        alert('Failed to download report.');
+      }
+    );
 
-        this.authService
-          .createLog({
-            userId: user.id,
-            action: 'Downloaded KPI Report',
-            timestamp: new Date().toISOString(),
-          })
-          .subscribe({
-            next: () => console.log('Log entry created successfully'),
-            error: (err) => console.error('Error creating log entry:', err),
-          });
+    this.authService
+      .createLog({
+        userId: user.id,
+        action: 'Downloaded KPI Report',
+        timestamp: new Date().toISOString(),
+      })
+      .subscribe({
+        next: () => console.log('Log entry created successfully'),
+        error: (err) => console.error('Error creating log entry:', err),
+      });
   }
 }
