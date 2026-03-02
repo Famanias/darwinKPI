@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "darwin-94xizeh95-famanias-projects.vercel.app/api/$1"
+      "destination": "https://darwin-94xizeh95-famanias-projects.vercel.app/api/$1"
     },
     {
       "source": "/(.*)",
