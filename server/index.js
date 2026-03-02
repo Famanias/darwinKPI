@@ -1,15 +1,24 @@
 require("dotenv").config();
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
-const { promisify } = require("util");
+const { Pool } = require("pg");
 const cors = require("cors");
 
 const app = express();
 
 // CORS configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL,  // Set in Render dashboard (e.g. https://your-app.vercel.app)
+  "http://localhost:4200",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: true, // Allow all origins for now
+    origin: (origin, callback) => {
+      // Allow requests with no origin (server-to-server, Postman, etc.)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -17,157 +26,200 @@ app.use(
 
 app.use(express.json());
 
-// Database path - use RAILWAY_VOLUME_MOUNT_PATH if available (for persistent storage)
-const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
-  ? `${process.env.RAILWAY_VOLUME_MOUNT_PATH}/darwinkpi.db`
-  : "./darwinkpi.db";
+// ── PostgreSQL compatibility shim ─────────────────────────────────────────────
+// Routes were written for SQLite (? placeholders, db.execute / allAsync / etc.)
+// This shim wraps pg.Pool with the same API so no route files need to change.
 
-// Database connection setup
-const initDB = async () => {
-  return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(dbPath, (err) => {
-      if (err) {
-        console.error("SQLite connection error:", err.message);
-        reject(err);
-      } else {
-        console.log(`SQLite connected at ${dbPath}`);
+// Convert SQLite ? positional params to PostgreSQL $1 $2 $3 ...
+function toPositional(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
+}
 
-        // Promisify database methods
-        db.runAsync = promisify(db.run.bind(db));
-        db.getAsync = promisify(db.get.bind(db));
-        db.allAsync = promisify(db.all.bind(db));
-
-        // For compatibility with MySQL code, add execute method
-        db.execute = async (sql, params) => {
-          if (sql.trim().toUpperCase().startsWith("SELECT")) {
-            return [await db.allAsync(sql, params)];
-          } else {
-            return new Promise((resolve, reject) => {
-              db.run(sql, params, function (err) {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve([
-                    { insertId: this.lastID, affectedRows: this.changes },
-                  ]);
-                }
-              });
-            });
-          }
-        };
-
-        // Initialize schema with organizations support
-        initializeSchema(db)
-          .then(() => resolve(db))
-          .catch(reject);
+function createDbShim(pool) {
+  return {
+    // Promise-based: returns [rows] for SELECT, [{insertId, affectedRows}] for writes
+    execute: async (sql, params = []) => {
+      const isSelect = sql.trim().toUpperCase().startsWith("SELECT");
+      let pgSql = toPositional(sql);
+      if (!isSelect && sql.trim().toUpperCase().startsWith("INSERT") &&
+          !pgSql.toUpperCase().includes("RETURNING")) {
+        pgSql += " RETURNING id";
       }
-    });
-  });
-};
+      const { rows, rowCount } = await pool.query(pgSql, params);
+      if (isSelect) return [rows];
+      return [{ insertId: rows[0]?.id ?? null, affectedRows: rowCount }];
+    },
 
-// Initialize database schema with organization support
-const initializeSchema = async (db) => {
-  // Create organizations table
-  await db.runAsync(`
+    // Promise-based: returns all rows
+    allAsync: async (sql, params = []) => {
+      const { rows } = await pool.query(toPositional(sql), params);
+      return rows;
+    },
+
+    // Promise-based: returns first row or null
+    getAsync: async (sql, params = []) => {
+      const { rows } = await pool.query(toPositional(sql), params);
+      return rows[0] ?? null;
+    },
+
+    // Promise-based write; returns {lastID, changes}
+    runAsync: async (sql, params = []) => {
+      let pgSql = toPositional(sql);
+      if (sql.trim().toUpperCase().startsWith("INSERT") &&
+          !pgSql.toUpperCase().includes("RETURNING")) {
+        pgSql += " RETURNING id";
+      }
+      const { rows, rowCount } = await pool.query(pgSql, params);
+      return { lastID: rows[0]?.id ?? null, changes: rowCount };
+    },
+
+    // Callback-style: all rows
+    all: (sql, params, callback) => {
+      pool.query(toPositional(sql), params)
+        .then(({ rows }) => callback(null, rows))
+        .catch((err) => callback(err));
+    },
+
+    // Callback-style: single row
+    get: (sql, params, callback) => {
+      pool.query(toPositional(sql), params)
+        .then(({ rows }) => callback(null, rows[0] ?? null))
+        .catch((err) => callback(err));
+    },
+
+    // Callback-style write; `this` inside callback has lastID and changes
+    run: (sql, params, callback) => {
+      let pgSql = toPositional(sql);
+      if (sql.trim().toUpperCase().startsWith("INSERT") &&
+          !pgSql.toUpperCase().includes("RETURNING")) {
+        pgSql += " RETURNING id";
+      }
+      pool.query(pgSql, params)
+        .then(({ rows, rowCount }) => {
+          const ctx = { lastID: rows[0]?.id ?? null, changes: rowCount };
+          callback.call(ctx, null);
+        })
+        .catch((err) => callback.call({}, err));
+    },
+  };
+}
+
+// ── Schema initialization ─────────────────────────────────────────────────────
+const initializeSchema = async (pool) => {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS organizations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      slug TEXT UNIQUE NOT NULL,
+      id         SERIAL PRIMARY KEY,
+      name       TEXT NOT NULL,
+      slug       TEXT UNIQUE NOT NULL,
       invite_code TEXT UNIQUE NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       created_by INTEGER
     )
   `);
 
-  // Check if org_id column exists in users table
-  const usersInfo = await db.allAsync("PRAGMA table_info(users)");
-  const hasOrgId = usersInfo.some((col) => col.name === "org_id");
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id         SERIAL PRIMARY KEY,
+      name       TEXT NOT NULL,
+      email      TEXT UNIQUE NOT NULL,
+      role       TEXT NOT NULL DEFAULT 'User',
+      password   TEXT NOT NULL,
+      status     TEXT DEFAULT 'Active',
+      org_id     INTEGER REFERENCES organizations(id),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-  if (!hasOrgId) {
-    // Add org_id to users table
-    await db.runAsync(
-      `ALTER TABLE users ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
-    );
-    console.log("Added org_id column to users table");
-  }
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kpis (
+      id            SERIAL PRIMARY KEY,
+      name          TEXT NOT NULL,
+      description   TEXT,
+      unit          TEXT,
+      target        REAL,
+      frequency     TEXT,
+      visualization TEXT,
+      org_id        INTEGER REFERENCES organizations(id),
+      created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-  // Check if org_id column exists in kpis table
-  const kpisInfo = await db.allAsync("PRAGMA table_info(kpis)");
-  const kpisHasOrgId = kpisInfo.some((col) => col.name === "org_id");
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS performance_data (
+      id         SERIAL PRIMARY KEY,
+      kpi_id     INTEGER REFERENCES kpis(id) ON DELETE CASCADE,
+      user_id    INTEGER REFERENCES users(id),
+      value      REAL NOT NULL,
+      date       DATE NOT NULL,
+      org_id     INTEGER REFERENCES organizations(id),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-  if (!kpisHasOrgId) {
-    await db.runAsync(
-      `ALTER TABLE kpis ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
-    );
-    console.log("Added org_id column to kpis table");
-  }
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS logs (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER REFERENCES users(id),
+      action     TEXT NOT NULL,
+      timestamp  TEXT,
+      org_id     INTEGER REFERENCES organizations(id),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-  // Check if org_id column exists in performance_data table
-  const perfInfo = await db.allAsync("PRAGMA table_info(performance_data)");
-  const perfHasOrgId = perfInfo.some((col) => col.name === "org_id");
-
-  if (!perfHasOrgId) {
-    await db.runAsync(
-      `ALTER TABLE performance_data ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
-    );
-    console.log("Added org_id column to performance_data table");
-  }
-
-  // Check if org_id column exists in logs table
-  const logsInfo = await db.allAsync("PRAGMA table_info(logs)");
-  const logsHasOrgId = logsInfo.some((col) => col.name === "org_id");
-
-  if (!logsHasOrgId) {
-    await db.runAsync(
-      `ALTER TABLE logs ADD COLUMN org_id INTEGER REFERENCES organizations(id)`
-    );
-    console.log("Added org_id column to logs table");
-  }
-
-  console.log("Database schema initialized with organization support");
+  console.log("Database schema ready");
 };
 
-// Initialize database and routes
+// ── Boot ──────────────────────────────────────────────────────────────────────
 const initializeApp = async () => {
   try {
-    const db = await initDB();
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === "production"
+        ? { rejectUnauthorized: false }
+        : false,
+    });
 
-    // Attach database to app context
-    app.locals.db = db;
+    await pool.query("SELECT 1"); // verify connection
+    console.log("PostgreSQL connected");
+
+    await initializeSchema(pool);
+
+    // Attach shim so routes call db.execute / db.allAsync / etc. unchanged
+    app.locals.db = createDbShim(pool);
 
     // Routes
-    const authRoutes = require("./routes/auth");
-    const kpiRoutes = require("./routes/kpi");
-    const usersRoutes = require("./routes/users");
-    const performanceRoutes = require("./routes/performance");
-    const analyticsRoutes = require("./routes/analytics");
-    const logsRoutes = require("./routes/logs");
-    const importRoutes = require("./routes/import");
-    const downloadRoutes = require("./routes/download");
+    const authRoutes          = require("./routes/auth");
+    const kpiRoutes           = require("./routes/kpi");
+    const usersRoutes         = require("./routes/users");
+    const performanceRoutes   = require("./routes/performance");
+    const analyticsRoutes     = require("./routes/analytics");
+    const logsRoutes          = require("./routes/logs");
+    const importRoutes        = require("./routes/import");
+    const downloadRoutes      = require("./routes/download");
     const organizationsRoutes = require("./routes/organizations");
 
-    app.use("/api/auth", authRoutes);
-    app.use("/api/kpis", kpiRoutes);
-    app.use("/api/users", usersRoutes);
+    app.use("/api/auth",             authRoutes);
+    app.use("/api/kpis",             kpiRoutes);
+    app.use("/api/users",            usersRoutes);
     app.use("/api/performance-data", performanceRoutes);
-    app.use("/api/analytics", analyticsRoutes);
-    app.use("/api/logs", logsRoutes);
-    app.use("/api/import", importRoutes);
-    app.use("/api/download", downloadRoutes);
-    app.use("/api/organizations", organizationsRoutes);
+    app.use("/api/analytics",        analyticsRoutes);
+    app.use("/api/logs",             logsRoutes);
+    app.use("/api/import",           importRoutes);
+    app.use("/api/download",         downloadRoutes);
+    app.use("/api/organizations",    organizationsRoutes);
 
-    // Error handling middleware
+    // Error handling
     app.use((err, req, res, next) => {
       console.error(err.stack);
       res.status(500).json({ message: "Something broke!" });
     });
 
-    // Start server only when not in Vercel environment
+    // Don't bind a port on Vercel — the serverless runtime handles that
     if (!process.env.VERCEL) {
       const port = process.env.PORT || 3000;
-      app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
-      });
+      app.listen(port, () => console.log(`Server running on port ${port}`));
     }
 
     return app;
@@ -177,5 +229,6 @@ const initializeApp = async () => {
   }
 };
 
-// Export the initialized app for Vercel
-module.exports = initializeApp();
+initializeApp();
+module.exports = app;
+

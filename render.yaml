@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: darwinkpi-backend
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false             # Paste your Supabase connection string here
+                                # (Session mode pooler recommended for free tier)
+                                # e.g. postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
+      - key: FRONTEND_URL
+        sync: false             # e.g. https://your-app.vercel.app

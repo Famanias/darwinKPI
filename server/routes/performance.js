@@ -76,18 +76,17 @@ router.get(
         query += "date = ?";
         params.push(periodStart);
       } else if (freq === "monthly") {
-        query += "strftime('%Y', date) = ? AND strftime('%m', date) = ?";
+        query += "TO_CHAR(date, 'YYYY') = ? AND TO_CHAR(date, 'MM') = ?";
         params.push(
           String(now.getFullYear()),
           String(now.getMonth() + 1).padStart(2, "0")
         );
       } else if (freq === "quarterly") {
         const quarter = Math.floor(now.getMonth() / 3) + 1;
-        query +=
-          "strftime('%Y', date) = ? AND CAST((CAST(strftime('%m', date) AS INTEGER) - 1) / 3 AS INTEGER) + 1 = ?";
+        query += "TO_CHAR(date, 'YYYY') = ? AND EXTRACT(QUARTER FROM date)::int = ?";
         params.push(String(now.getFullYear()), quarter);
       } else if (freq === "yearly") {
-        query += "strftime('%Y', date) = ?";
+        query += "TO_CHAR(date, 'YYYY') = ?";
         params.push(String(now.getFullYear()));
       } else if (freq === "weekly") {
         // For weekly, check if the date falls within the same week
@@ -169,18 +168,17 @@ router.post(
         query += "date = ?";
         params.push(dateStr);
       } else if (freq === "monthly") {
-        query += "strftime('%Y', date) = ? AND strftime('%m', date) = ?";
+        query += "TO_CHAR(date, 'YYYY') = ? AND TO_CHAR(date, 'MM') = ?";
         params.push(
           String(now.getFullYear()),
           String(now.getMonth() + 1).padStart(2, "0")
         );
       } else if (freq === "quarterly") {
         const quarter = Math.floor(now.getMonth() / 3) + 1;
-        query +=
-          "strftime('%Y', date) = ? AND CAST((CAST(strftime('%m', date) AS INTEGER) - 1) / 3 AS INTEGER) + 1 = ?";
+        query += "TO_CHAR(date, 'YYYY') = ? AND EXTRACT(QUARTER FROM date)::int = ?";
         params.push(String(now.getFullYear()), quarter);
       } else if (freq === "yearly") {
-        query += "strftime('%Y', date) = ?";
+        query += "TO_CHAR(date, 'YYYY') = ?";
         params.push(String(now.getFullYear()));
       } else if (freq === "weekly") {
         const startOfWeek = new Date(now);

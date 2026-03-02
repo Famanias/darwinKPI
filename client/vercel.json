@@ -1,12 +1,14 @@
 {
-    "rewrites": [
-      {
-        "source": "/api/(.*)",
-        "destination": "https://darwin-kpi-backend.vercel.app/api/$1"
-      },
-      {
-        "source": "/(.*)",
-        "destination": "/index.html"
-      }
-    ]
-  }
+  "outputDirectory": "dist/client/browser",
+  "buildCommand": "npm run build",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "darwin-94xizeh95-famanias-projects.vercel.app/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
