@@ -147,12 +147,14 @@ router.post("/register", async (req, res) => {
     });
   } catch (err) {
     console.error("Registration error:", err);
-    if (err.code === "ER_DUP_ENTRY") {
+    if (err.code === "ER_DUP_ENTRY" || err.code === "23505") {
       return res.status(400).json({ message: "User already exists" });
     }
-    res
-      .status(500)
-      .json({ message: "Registration failed", error: "Database error" });
+    res.status(500).json({
+      message: "Registration failed",
+      error: err.message,   // surface the real DB error
+      code: err.code,
+    });
   }
 });
 

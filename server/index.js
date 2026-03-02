@@ -7,17 +7,20 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-  process.env.FRONTEND_URL,  // Set in Render dashboard (e.g. https://your-app.vercel.app)
+  process.env.FRONTEND_URL,
   "http://localhost:4200",
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (server-to-server, Postman, etc.)
+      // Allow requests with no origin (server-to-server, Postman, curl, etc.)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin ${origin} not allowed`));
+      // Return false (blocked) instead of an Error so it doesn't hit the
+      // global error handler and return a confusing 500.
+      console.warn(`CORS blocked: ${origin}`);
+      return callback(null, false);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -192,6 +195,18 @@ app.use("/api/logs",             logsRoutes);
 app.use("/api/import",           importRoutes);
 app.use("/api/download",         downloadRoutes);
 app.use("/api/organizations",    organizationsRoutes);
+
+// Health check — visit /api/health to confirm DB is connected
+app.get("/api/health", async (req, res) => {
+  const db = req.app.locals.db;
+  if (!db) return res.status(503).json({ status: "error", message: "DB not initialised yet" });
+  try {
+    await db.getAsync("SELECT 1 AS ok");
+    res.json({ status: "ok", db: "connected" });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: err.message });
+  }
+});
 
 // Error handling
 app.use((err, req, res, next) => {
