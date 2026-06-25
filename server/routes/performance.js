@@ -233,7 +233,7 @@ router.post(
   async (req, res) => {
     const { kpi_id, user_id, value, date } = req.body;
     try {
-      if (!kpi_id || !user_id || !value || !date) {
+      if (!kpi_id || !user_id || value === undefined || value === null || !date) {
         return res.status(400).json({
           message: "kpi_id, user_id, value, and date are required",
         });

@@ -450,7 +450,6 @@ async function seed() {
     if (org) {
       console.log(`   Organization already exists: ${org.name} (ID: ${org.id})`);
       console.log("   Re-run with --reset to wipe and re-seed.\n");
-      db.close();
       return;
     }
 

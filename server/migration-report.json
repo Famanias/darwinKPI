@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-06-25T05:12:30.265Z",
+  "endedAt": "2026-06-25T05:13:35.287Z",
+  "durationMs": 65021,
+  "dryRun": false,
+  "resetExecuted": true,
+  "organizations": 2,
+  "users": 12,
+  "kpis": 28,
+  "performance_data": 545,
+  "logs": 111,
+  "success": true,
+  "error": null
+}

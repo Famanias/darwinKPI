@@ -85,16 +85,21 @@ router.get(
   authMiddleware(["Admin", "User", "Analyst"]),
   async (req, res) => {
     try {
+      if (!req.user.org_id) {
+        return res.status(403).json({ message: "You must belong to an organization to download reports" });
+      }
       const db = req.app.locals.db;
-      const [kpis] = await db.execute("SELECT * FROM kpis");
+      const [kpis] = await db.execute("SELECT * FROM kpis WHERE org_id = ?", [
+        req.user.org_id,
+      ]);
       if (!kpis.length) {
         return res.status(404).json({ message: "No KPIs found" });
       }
       const kpiIds = kpis.map((kpi) => kpi.id);
       const placeholders = kpiIds.map(() => "?").join(",");
       const [performanceData] = await db.execute(
-        `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) ORDER BY date ASC`,
-        kpiIds
+        `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) AND org_id = ? ORDER BY date ASC`,
+        [...kpiIds, req.user.org_id]
       );
 
       const doc = new PDFDocument({ margin: 50, bufferPages: true });
@@ -196,14 +201,17 @@ router.post(
     }
 
     try {
+      if (!req.user.org_id) {
+        return res.status(403).json({ message: "You must belong to an organization to download reports" });
+      }
       const db = req.app.locals.db;
 
       // Get KPIs
       const [kpis] = await db.execute(
         "SELECT * FROM kpis WHERE id IN (" +
           kpiIds.map(() => "?").join(",") +
-          ")",
-        kpiIds
+          ") AND org_id = ?",
+        [...kpiIds, req.user.org_id]
       );
       if (!kpis.length) {
         return res.status(404).json({ message: "No KPIs found" });
@@ -212,8 +220,8 @@ router.post(
       // Get performance data for the KPIs and user
       const placeholders = kpiIds.map(() => "?").join(",");
       const [performanceData] = await db.execute(
-        `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) AND user_id = ? ORDER BY date ASC`,
-        [...kpiIds, userId]
+        `SELECT * FROM performance_data WHERE kpi_id IN (${placeholders}) AND user_id = ? AND org_id = ? ORDER BY date ASC`,
+        [...kpiIds, userId, req.user.org_id]
       );
 
       const doc = new PDFDocument({ margin: 50, bufferPages: true });
@@ -300,16 +308,20 @@ router.get(
   async (req, res) => {
     const { kpiId } = req.params;
     try {
+      if (!req.user.org_id) {
+        return res.status(403).json({ message: "You must belong to an organization to download reports" });
+      }
       const db = req.app.locals.db;
-      const [kpis] = await db.execute("SELECT * FROM kpis WHERE id = ?", [
+      const [kpis] = await db.execute("SELECT * FROM kpis WHERE id = ? AND org_id = ?", [
         kpiId,
+        req.user.org_id,
       ]);
       if (!kpis.length) {
         return res.status(404).json({ message: "KPI not found" });
       }
       const [performanceData] = await db.execute(
-        "SELECT * FROM performance_data WHERE kpi_id = ? ORDER BY date ASC",
-        [kpiId]
+        "SELECT * FROM performance_data WHERE kpi_id = ? AND org_id = ? ORDER BY date ASC",
+        [kpiId, req.user.org_id]
       );
 
       const doc = new PDFDocument({ margin: 50, bufferPages: true });
