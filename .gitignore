@@ -23,3 +23,5 @@ data/
 server/node_modules
 server/node_modules/**
 /node_modules/**
+implementation_plan.md
+server/migrate-to-supabase.js
